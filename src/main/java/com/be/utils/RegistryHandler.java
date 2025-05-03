@@ -1,6 +1,24 @@
 package com.be.utils;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Locale;
+import java.util.logging.Level;
+
+import javax.annotation.Nonnull;
+
+import org.bukkit.ChatColor;
+import org.bukkit.Color;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.jetbrains.annotations.Nullable;
+
 import com.be.BETree;
+
 import io.github.thebusybiscuit.exoticgarden.Berry;
 import io.github.thebusybiscuit.exoticgarden.CustomPotion;
 import io.github.thebusybiscuit.exoticgarden.ExoticGarden;
@@ -14,21 +32,6 @@ import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack;
 import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType;
 import io.github.thebusybiscuit.slimefun4.implementation.SlimefunItems;
 import io.github.thebusybiscuit.slimefun4.implementation.items.food.Juice;
-import org.bukkit.ChatColor;
-import org.bukkit.Color;
-import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-import org.jetbrains.annotations.Nullable;
-
-import javax.annotation.Nonnull;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Locale;
-import java.util.logging.Level;
 
 public class RegistryHandler {
 
@@ -41,7 +44,7 @@ public class RegistryHandler {
         ExoticGarden.getBerries().add(berry);
         SlimefunItemStack bush = new SlimefunItemStack(enumStyle + "_BUSH", Material.OAK_SAPLING, color + name + "植物");
         ExoticGarden.getGrassDrops().put(upperCase + "_BUSH", bush);
-        (new BonemealableItem(ExoticGarden.instance.mainItemGroup, bush, ExoticGardenRecipeTypes.BREAKING_GRASS, new ItemStack[]{null, null, null, null, new ItemStack(Material.GRASS), null, null, null, null})).register(ExoticGarden.getInstance());
+        (new BonemealableItem(ExoticGarden.instance.mainItemGroup, bush, ExoticGardenRecipeTypes.BREAKING_GRASS, new ItemStack[]{null, null, null, null, new ItemStack(Material.SHORT_GRASS), null, null, null, null})).register(ExoticGarden.getInstance());
         (new ExoticGardenFruit(ExoticGarden.instance.mainItemGroup, new SlimefunItemStack(enumStyle, texture, color + name), ExoticGardenRecipeTypes.HARVEST_BUSH, true, new ItemStack[]{null, null, null, null, getItem(enumStyle + "_BUSH"), null, null, null, null})).register(ExoticGarden.getInstance());
     }
 
@@ -51,7 +54,7 @@ public class RegistryHandler {
         ExoticGarden.getTrees().add(tree);
         SlimefunItemStack sapling = new SlimefunItemStack(id + "_SAPLING", Material.OAK_SAPLING, color + name + " 树苗");
         ExoticGarden.getGrassDrops().put(id + "_SAPLING", sapling);
-        (new BonemealableItem(ExoticGarden.instance.mainItemGroup, sapling, ExoticGardenRecipeTypes.BREAKING_GRASS, new ItemStack[]{null, null, null, null, new ItemStack(Material.GRASS), null, null, null, null})).register(ExoticGarden.getInstance());
+        (new BonemealableItem(ExoticGarden.instance.mainItemGroup, sapling, ExoticGardenRecipeTypes.BREAKING_GRASS, new ItemStack[]{null, null, null, null, new ItemStack(Material.SHORT_GRASS), null, null, null, null})).register(ExoticGarden.getInstance());
         (new ExoticGardenFruit(ExoticGarden.instance.mainItemGroup, new SlimefunItemStack(id, texture, color + name), ExoticGardenRecipeTypes.HARVEST_TREE, true, new ItemStack[]{null, null, null, null, getItem(id + "_SAPLING"), null, null, null, null})).register(ExoticGarden.getInstance());
         if (pcolor != null) {
             (new Juice(ExoticGarden.instance.drinksItemGroup, new SlimefunItemStack(juice.toUpperCase().replace(" ", "_"), new CustomPotion(color + juice, pcolor, new PotionEffect(PotionEffectType.SATURATION, 6, 0), "", "&7&o恢复 &b&o3.0 &7&o点饥饿值")), RecipeType.JUICER, new ItemStack[]{getItem(id), null, null, null, null, null, null, null, null})).register(ExoticGarden.getInstance());

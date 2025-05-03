@@ -1,23 +1,15 @@
 package io.github.thebusybiscuit.exoticgarden.listeners;
 
-import com.xzavier0722.mc.plugin.slimefun4.storage.util.StorageCacheUtils;
-import io.github.thebusybiscuit.exoticgarden.Berry;
-import io.github.thebusybiscuit.exoticgarden.ExoticGarden;
-import io.github.thebusybiscuit.exoticgarden.ExoticItems;
-import io.github.thebusybiscuit.exoticgarden.PlantType;
-import io.github.thebusybiscuit.exoticgarden.Tree;
-import io.github.thebusybiscuit.exoticgarden.items.BonemealableItem;
-import io.github.thebusybiscuit.exoticgarden.schematics.Schematic;
-import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
-import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
-import io.github.thebusybiscuit.slimefun4.libraries.dough.config.Config;
-import io.github.thebusybiscuit.slimefun4.libraries.dough.protection.Interaction;
-import io.github.thebusybiscuit.slimefun4.libraries.dough.skins.PlayerHead;
-import io.github.thebusybiscuit.slimefun4.libraries.dough.skins.PlayerSkin;
-import io.github.thebusybiscuit.slimefun4.libraries.paperlib.PaperLib;
-import io.github.thebusybiscuit.slimefun4.utils.tags.SlimefunTag;
-import io.ncbpfluffybear.fluffymachines.utils.FluffyItems;
-import me.mrCookieSlime.Slimefun.api.BlockStorage;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
+
 import org.bukkit.Effect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -49,15 +41,25 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
-import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
+import com.xzavier0722.mc.plugin.slimefun4.storage.util.StorageCacheUtils;
+
+import io.github.thebusybiscuit.exoticgarden.Berry;
+import io.github.thebusybiscuit.exoticgarden.ExoticGarden;
+import io.github.thebusybiscuit.exoticgarden.ExoticItems;
+import io.github.thebusybiscuit.exoticgarden.PlantType;
+import io.github.thebusybiscuit.exoticgarden.Tree;
+import io.github.thebusybiscuit.exoticgarden.items.BonemealableItem;
+import io.github.thebusybiscuit.exoticgarden.schematics.Schematic;
+import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
+import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
+import io.github.thebusybiscuit.slimefun4.libraries.dough.config.Config;
+import io.github.thebusybiscuit.slimefun4.libraries.dough.protection.Interaction;
+import io.github.thebusybiscuit.slimefun4.libraries.dough.skins.PlayerHead;
+import io.github.thebusybiscuit.slimefun4.libraries.dough.skins.PlayerSkin;
+import io.github.thebusybiscuit.slimefun4.libraries.paperlib.PaperLib;
+import io.github.thebusybiscuit.slimefun4.utils.tags.SlimefunTag;
+import io.ncbpfluffybear.fluffymachines.utils.FluffyItems;
+import me.mrCookieSlime.Slimefun.api.BlockStorage;
 
 public class PlantsListener implements Listener {
 
@@ -363,7 +365,7 @@ public class PlantsListener implements Listener {
                 dropFruitFromTree(e.getBlock());
             }
 
-            if (e.getBlock().getType() == Material.GRASS) {
+            if (e.getBlock().getType() == Material.SHORT_GRASS) {
                 if (!ExoticGarden.getGrassDrops().isEmpty() && e.getPlayer().getGameMode() != GameMode.CREATIVE) {
                     Random random = ThreadLocalRandom.current();
 
@@ -482,7 +484,7 @@ public class PlantsListener implements Listener {
 
             if (item instanceof BonemealableItem && ((BonemealableItem) item).isBonemealDisabled()) {
                 e.setCancelled(true);
-                b.getWorld().spawnParticle(Particle.VILLAGER_ANGRY, b.getLocation().clone().add(0.5, 0, 0.5), 4);
+                b.getWorld().spawnParticle(Particle.ANGRY_VILLAGER, b.getLocation().clone().add(0.5, 0, 0.5), 4);
                 b.getWorld().playSound(b.getLocation(), Sound.ENTITY_VILLAGER_NO, 1, 1);
             }
         }
@@ -537,7 +539,7 @@ public class PlantsListener implements Listener {
             final double random = ThreadLocalRandom.current().nextDouble();
             for (Tree tree : ExoticGarden.getTrees()) {
                 if (item.getId().equalsIgnoreCase(tree.getSapling())) {
-                    l.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, l.add(0.5D, 0.5D, 0.5D), 15, 0.2F, 0.2F, 0.2F);
+                    l.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, l.add(0.5D, 0.5D, 0.5D), 15, 0.2F, 0.2F, 0.2F);
                     if (cfg.getDouble("watering-can.chance") >= random) {
                         BlockStorage.clearBlockInfo(l.getBlock());
                         Schematic.pasteSchematic(l, tree, false);
@@ -548,7 +550,7 @@ public class PlantsListener implements Listener {
 
             for (Berry berry : ExoticGarden.getBerries()) {
                 if (item.getId().equalsIgnoreCase(berry.toBush())) {
-                    l.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, l.add(0.5D, 0.5D, 0.5D), 15, 0.2F, 0.2F, 0.2F);
+                    l.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, l.add(0.5D, 0.5D, 0.5D), 15, 0.2F, 0.2F, 0.2F);
                     if (cfg.getDouble("watering-can.chance") >= random) {
                         switch (berry.getType()) {
                             case BUSH:
