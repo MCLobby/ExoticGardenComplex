@@ -4,6 +4,8 @@ import com.be.utils.RegistryHandler;
 import io.github.thebusybiscuit.exoticgarden.Tree;
 import io.github.thebusybiscuit.exoticgarden.schematics.Schematic;
 import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.entity.EntityType;
 
 import java.io.File;
 import java.io.IOException;
