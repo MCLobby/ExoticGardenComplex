@@ -37,7 +37,7 @@ public class RegistryHandler {
 
     private static final File schematicsFolder = new File(ExoticGarden.getInstance().getDataFolder(), "schematics");
 
-    public static void initPlant(String rawName, String name, ChatColor color, PlantType type, String texture) {
+    public static void initPlant(String rawName, String name, ChatColor color, PlantType type, boolean pie, String texture) {
         String upperCase = rawName.toUpperCase(Locale.ROOT);
         String enumStyle = upperCase.replace(' ', '_');
         Berry berry = new Berry(enumStyle, type, texture);
@@ -46,13 +46,16 @@ public class RegistryHandler {
         ExoticGarden.getGrassDrops().put(upperCase + "_BUSH", bush);
         (new BonemealableItem(ExoticGarden.instance.mainItemGroup, bush, ExoticGardenRecipeTypes.BREAKING_GRASS, new ItemStack[]{null, null, null, null, new ItemStack(Material.SHORT_GRASS), null, null, null, null})).register(ExoticGarden.getInstance());
         (new ExoticGardenFruit(ExoticGarden.instance.mainItemGroup, new SlimefunItemStack(enumStyle, texture, color + name), ExoticGardenRecipeTypes.HARVEST_BUSH, true, new ItemStack[]{null, null, null, null, getItem(enumStyle + "_BUSH"), null, null, null, null})).register(ExoticGarden.getInstance());
+        if (pie) {
+            (new CustomFood(ExoticGarden.instance.foodItemGroup, new SlimefunItemStack(enumStyle + "_PIE", "3418c6b0a29fc1fe791c89774d828ff63d2a9fa6c83373ef3aa47bf3eb79", color + name + "派", "", "&7&o恢复 &b&o6.5 &7&o点饥饿值"), new ItemStack[]{getItem(enumStyle), new ItemStack(Material.EGG), new ItemStack(Material.SUGAR), new ItemStack(Material.MILK_BUCKET), SlimefunItems.WHEAT_FLOUR, null, null, null, null}, 13)).register(ExoticGarden.getInstance());
+        }
     }
 
     public static void initTree(String rawName, String name, String texture, String color, Color pcolor, String juice, boolean pie, Material... soil) {
         String id = rawName.toUpperCase(Locale.ROOT).replace(' ', '_');
         BETree tree = new BETree(id, texture, soil);
         ExoticGarden.getTrees().add(tree);
-        SlimefunItemStack sapling = new SlimefunItemStack(id + "_SAPLING", Material.OAK_SAPLING, color + name + " 树苗");
+        SlimefunItemStack sapling = new SlimefunItemStack(id + "_SAPLING", Material.OAK_SAPLING, color + name + "树苗");
         ExoticGarden.getGrassDrops().put(id + "_SAPLING", sapling);
         (new BonemealableItem(ExoticGarden.instance.mainItemGroup, sapling, ExoticGardenRecipeTypes.BREAKING_GRASS, new ItemStack[]{null, null, null, null, new ItemStack(Material.SHORT_GRASS), null, null, null, null})).register(ExoticGarden.getInstance());
         (new ExoticGardenFruit(ExoticGarden.instance.mainItemGroup, new SlimefunItemStack(id, texture, color + name), ExoticGardenRecipeTypes.HARVEST_TREE, true, new ItemStack[]{null, null, null, null, getItem(id + "_SAPLING"), null, null, null, null})).register(ExoticGarden.getInstance());
@@ -61,7 +64,7 @@ public class RegistryHandler {
         }
 
         if (pie) {
-            (new CustomFood(ExoticGarden.instance.foodItemGroup, new SlimefunItemStack(id + "_PIE", "3418c6b0a29fc1fe791c89774d828ff63d2a9fa6c83373ef3aa47bf3eb79", color + name + " 派", "", "&7&o恢复 &b&o6.5 &7&o点饥饿值"), new ItemStack[]{getItem(id), new ItemStack(Material.EGG), new ItemStack(Material.SUGAR), new ItemStack(Material.MILK_BUCKET), SlimefunItems.WHEAT_FLOUR, null, null, null, null}, 13)).register(ExoticGarden.getInstance());
+            (new CustomFood(ExoticGarden.instance.foodItemGroup, new SlimefunItemStack(id + "_PIE", "3418c6b0a29fc1fe791c89774d828ff63d2a9fa6c83373ef3aa47bf3eb79", color + name + "派", "", "&7&o恢复 &b&o6.5 &7&o点饥饿值"), new ItemStack[]{getItem(id), new ItemStack(Material.EGG), new ItemStack(Material.SUGAR), new ItemStack(Material.MILK_BUCKET), SlimefunItems.WHEAT_FLOUR, null, null, null, null}, 13)).register(ExoticGarden.getInstance());
         }
 
         if (!(new File(getSchematicsFolder(), id + "_TREE.schematic")).exists()) {
