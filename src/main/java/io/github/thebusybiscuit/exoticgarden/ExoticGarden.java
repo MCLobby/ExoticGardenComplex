@@ -599,7 +599,7 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
 
                 getItem("COFFEEBEAN"), null, null, null, null, null, null, null, null}, 2, 6.0F)).register(ExoticGarden.instance);
 
-        (new CustomFood(drinksItemGroup, new CustomPotion("&a酸橙冰沙", 8203, new String[]{"", "&7&o恢复 &b5.0 &7&o点饥饿值"}, new PotionEffect(PotionEffectType.SATURATION, 10, 0)), "LIME_SMOOTHIE", RecipeType.JUICER, new ItemStack[]{
+        (new CustomFood(drinksItemGroup, new CustomPotion("&a酸橙冰沙", 8203, new String[]{"", "&7&o恢复 &b5.0 &7&o点饥饿值"}, new PotionEffect(PotionEffectType.SATURATION, 10, 0)), "LIME_SMOOTHIE", RecipeType.ENHANCED_CRAFTING_TABLE, new ItemStack[]{
                 getItem("LIME_JUICE"), getItem("ICE_CUBE"), null, null, null, null, null, null, null}, 5))
                 .register(ExoticGarden.instance);
 
@@ -608,27 +608,27 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
                 .register(ExoticGarden.instance);
 
 
-        (new CustomFood(drinksItemGroup, new CustomPotion("&e柠檬冰茶", 8227, new String[]{"", "&7&o恢复 &b6.5 &7&o点饥饿值"}, new PotionEffect(PotionEffectType.SATURATION, 13, 0)), "LEMON_ICED_TEA", RecipeType.JUICER, new ItemStack[]{
+        (new CustomFood(drinksItemGroup, new CustomPotion("&e柠檬冰茶", 8227, new String[]{"", "&7&o恢复 &b6.5 &7&o点饥饿值"}, new PotionEffect(PotionEffectType.SATURATION, 13, 0)), "LEMON_ICED_TEA", RecipeType.ENHANCED_CRAFTING_TABLE, new ItemStack[]{
                 getItem("LEMON"), getItem("ICE_CUBE"), getItem("TEA_LEAF"), null, null, null, null, null, null}, 6))
                 .register(ExoticGarden.instance);
 
-        (new CustomFood(drinksItemGroup, new CustomPotion("&d覆盆子冰茶", 8193, new String[]{"", "&7&o恢复 &b6.5 &7&o点饥饿值"}, new PotionEffect(PotionEffectType.SATURATION, 13, 0)), "RASPBERRY_ICED_TEA", RecipeType.JUICER, new ItemStack[]{
+        (new CustomFood(drinksItemGroup, new CustomPotion("&d覆盆子冰茶", 8193, new String[]{"", "&7&o恢复 &b6.5 &7&o点饥饿值"}, new PotionEffect(PotionEffectType.SATURATION, 13, 0)), "RASPBERRY_ICED_TEA", RecipeType.ENHANCED_CRAFTING_TABLE, new ItemStack[]{
                 getItem("RASPBERRY"), getItem("ICE_CUBE"), getItem("TEA_LEAF"), null, null, null, null, null, null}, 6))
                 .register(ExoticGarden.instance);
 
-        (new CustomFood(drinksItemGroup, new CustomPotion("&d香桃冰茶", 8193, new String[]{"", "&7&o恢复 &b6.5 &7&o点饥饿值"}, new PotionEffect(PotionEffectType.SATURATION, 13, 0)), "PEACH_ICED_TEA", RecipeType.JUICER, new ItemStack[]{
+        (new CustomFood(drinksItemGroup, new CustomPotion("&d香桃冰茶", 8193, new String[]{"", "&7&o恢复 &b6.5 &7&o点饥饿值"}, new PotionEffect(PotionEffectType.SATURATION, 13, 0)), "PEACH_ICED_TEA", RecipeType.ENHANCED_CRAFTING_TABLE, new ItemStack[]{
                 getItem("PEACH"), getItem("ICE_CUBE"), getItem("TEA_LEAF"), null, null, null, null, null, null}, 6))
                 .register(ExoticGarden.instance);
 
-        (new CustomFood(drinksItemGroup, new CustomPotion("&c草莓冰茶", 8193, new String[]{"", "&7&o恢复 &b6.5 &7&o点饥饿值"}, new PotionEffect(PotionEffectType.SATURATION, 13, 0)), "STRAWBERRY_ICED_TEA", RecipeType.JUICER, new ItemStack[]{
+        (new CustomFood(drinksItemGroup, new CustomPotion("&c草莓冰茶", 8193, new String[]{"", "&7&o恢复 &b6.5 &7&o点饥饿值"}, new PotionEffect(PotionEffectType.SATURATION, 13, 0)), "STRAWBERRY_ICED_TEA", RecipeType.ENHANCED_CRAFTING_TABLE, new ItemStack[]{
                 getItem("STRAWBERRY"), getItem("ICE_CUBE"), getItem("TEA_LEAF"), null, null, null, null, null, null}, 6))
                 .register(ExoticGarden.instance);
 
-        (new CustomFood(drinksItemGroup, new CustomPotion("&c樱桃冰茶", 8193, new String[]{"", "&7&o恢复 &b6.5 &7&o点饥饿值"}, new PotionEffect(PotionEffectType.SATURATION, 13, 0)), "CHERRY_ICED_TEA", RecipeType.JUICER, new ItemStack[]{
+        (new CustomFood(drinksItemGroup, new CustomPotion("&c樱桃冰茶", 8193, new String[]{"", "&7&o恢复 &b6.5 &7&o点饥饿值"}, new PotionEffect(PotionEffectType.SATURATION, 13, 0)), "CHERRY_ICED_TEA", RecipeType.ENHANCED_CRAFTING_TABLE, new ItemStack[]{
                 getItem("CHERRY"), getItem("ICE_CUBE"), getItem("TEA_LEAF"), null, null, null, null, null, null}, 6))
                 .register(ExoticGarden.instance);
 
-        (new CustomFood(drinksItemGroup, new CustomPotion("&6泰式甜茶", 8201, new String[]{"", "&7&o恢复 &b7.0 &7&o点饥饿值"}, new PotionEffect(PotionEffectType.SATURATION, 14, 0)), "THAI_TEA", RecipeType.JUICER, new ItemStack[]{
+        (new CustomFood(drinksItemGroup, new CustomPotion("&6泰式甜茶", 8201, new String[]{"", "&7&o恢复 &b7.0 &7&o点饥饿值"}, new PotionEffect(PotionEffectType.SATURATION, 14, 0)), "THAI_TEA", RecipeType.ENHANCED_CRAFTING_TABLE, new ItemStack[]{
                 getItem("TEA_LEAF"), new ItemStack(Material.SUGAR), SlimefunItems.HEAVY_CREAM, getItem("COCONUT_MILK"), null, null, null, null, null}, 7))
                 .register(ExoticGarden.instance);
 
@@ -656,9 +656,9 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
                 getItem("CORN"), null, null, null, null, null, null, null, null
         })).register(ExoticGarden.instance);
 
-        (new CustomFood(foodItemGroup, new CustomItemStack(getSkull(Material.INK_SAC, "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODE5Zjk0OGQxNzcxOGFkYWNlNWRkNmUwNTBjNTg2MjI5NjUzZmVmNjQ1ZDcxMTNhYjk0ZDE3YjYzOWNjNDY2In19fQ=="), "&3巧克力棒", new String[]{"", "&7&o恢复 &b1.5 &7&o点饥饿值"}), "CHOCOLATE_BAR", ExoticGardenRecipeTypes.KITCHEN, new ItemStack[]{(new MaterialData(Material.INK_SAC, (byte) 3))
+        (new CustomFood(foodItemGroup, new CustomItemStack(getSkull(Material.INK_SAC, "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODE5Zjk0OGQxNzcxOGFkYWNlNWRkNmUwNTBjNTg2MjI5NjUzZmVmNjQ1ZDcxMTNhYjk0ZDE3YjYzOWNjNDY2In19fQ=="), "&3巧克力棒", new String[]{"", "&7&o恢复 &b1.5 &7&o点饥饿值"}), "CHOCOLATE_BAR", ExoticGardenRecipeTypes.KITCHEN, new ItemStack[]{new ItemStack(Material.INK_SAC)
 
-                .toItemStack(1), SlimefunItems.HEAVY_CREAM, null, null, null, null, null, null, null}, 3))
+                , SlimefunItems.HEAVY_CREAM, null, null, null, null, null, null, null}, 3))
 
                 .register(ExoticGarden.instance);
 
@@ -981,7 +981,7 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
 
                 .register(ExoticGarden.instance);
 
-        (new CustomFood(drinksItemGroup, new CustomPotion("&e柠檬水", 8227, new String[]{"", "&7&o恢复 &b3.0 &7&o点饥饿值"}, new PotionEffect(PotionEffectType.SATURATION, 6, 0)), "LEMONADE", RecipeType.JUICER, new ItemStack[]{
+        (new CustomFood(drinksItemGroup, new CustomPotion("&e柠檬水", 8227, new String[]{"", "&7&o恢复 &b3.0 &7&o点饥饿值"}, new PotionEffect(PotionEffectType.SATURATION, 6, 0)), "LEMONADE", RecipeType.ENHANCED_CRAFTING_TABLE, new ItemStack[]{
                 getItem("LEMON_JUICE"), new ItemStack(Material.SUGAR), null, null, null, null, null, null, null}, 3))
                 .register(ExoticGarden.instance);
 
@@ -1034,7 +1034,7 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
 
         (new CustomFood(foodItemGroup, new CustomItemStack(getSkull(Material.SNOWBALL, "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTUzNjZjYTE3OTc0ODkyZTRmZDRjN2I5YjE4ZmViMTFmMDViYTJlYzQ3YWE1MDM1YzgxYTk1MzNiMjgifX19"), "&r冰激凌", new String[]{"", "&7&o恢复 &b8.0 &7&o点饥饿值"}), "ICE_CREAM", ExoticGardenRecipeTypes.KITCHEN, new ItemStack[]{
 
-                getItem("HEAVY_CREAM"), getItem("ICE_CUBE"), new ItemStack(Material.SUGAR), (new MaterialData(Material.INK_SAC, (byte) 3)).toItemStack(1), getItem("STRAWBERRY"), null, null, null, null}, 16))
+                getItem("HEAVY_CREAM"), getItem("ICE_CUBE"), new ItemStack(Material.SUGAR), new ItemStack(Material.INK_SAC), getItem("STRAWBERRY"), null, null, null, null}, 16))
 
                 .register(ExoticGarden.instance);
 
@@ -1042,13 +1042,13 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
                 getItem("PINEAPPLE"), null, null, null, null, null, null, null, null}, 3))
                 .register(ExoticGarden.instance);
 
-        (new CustomFood(drinksItemGroup, new CustomPotion("&6菠萝冰沙", 8195, new String[]{"", "&7&o恢复 &b5.0 &7&o点饥饿值"}, new PotionEffect(PotionEffectType.SATURATION, 10, 0)), "PINEAPPLE_SMOOTHIE", RecipeType.JUICER, new ItemStack[]{
+        (new CustomFood(drinksItemGroup, new CustomPotion("&6菠萝冰沙", 8195, new String[]{"", "&7&o恢复 &b5.0 &7&o点饥饿值"}, new PotionEffect(PotionEffectType.SATURATION, 10, 0)), "PINEAPPLE_SMOOTHIE", RecipeType.ENHANCED_CRAFTING_TABLE, new ItemStack[]{
                 getItem("PINEAPPLE_JUICE"), getItem("ICE_CUBE"), null, null, null, null, null, null, null}, 5))
                 .register(ExoticGarden.instance);
 
         (new CustomFood(foodItemGroup, new CustomItemStack(getSkull(Material.SNOWBALL, "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTY5MDkxZDI4ODAyMmM3YjBlYjZkM2UzZjQ0YjBmZWE3ZjJjMDY5ZjQ5NzQ5MWExZGNhYjU4N2ViMWQ1NmQ0In19fQ=="), "&r提拉米苏", new String[]{"", "&7&o恢复 &b8.0 &7&o点饥饿值"}), "TIRAMISU", ExoticGardenRecipeTypes.KITCHEN, new ItemStack[]{
 
-                getItem("HEAVY_CREAM"), new ItemStack(Material.EGG), new ItemStack(Material.SUGAR), (new MaterialData(Material.INK_SAC, (byte) 3)).toItemStack(1), new ItemStack(Material.EGG), new ItemStack(Material.SUGAR), null, null, null}, 16))
+                getItem("HEAVY_CREAM"), new ItemStack(Material.EGG), new ItemStack(Material.SUGAR), new ItemStack(Material.INK_SAC), new ItemStack(Material.EGG), new ItemStack(Material.SUGAR), null, null, null}, 16))
 
                 .register(ExoticGarden.instance);
 
