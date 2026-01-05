@@ -384,6 +384,19 @@ public class PlantsListener implements Listener {
                         ItemStack[] items = ExoticGarden.getGrassDrops().values().toArray(new ItemStack[0]);
                         e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), items[random.nextInt(items.length)]);
                     }
+                    if (random.nextInt(100) < 3) {
+                        ItemStack grassSeeds = ExoticGarden.getGrassDrops().get("GRASS_SEEDS");
+                        if (grassSeeds != null) {
+                            e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), grassSeeds);
+                        }
+                    }
+                    
+                    if (random.nextInt(100) < 2) {
+                        ItemStack mysticSeed = ExoticGarden.getGrassDrops().get("MYSTIC_SEED");
+                        if (mysticSeed != null) {
+                            e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), mysticSeed);
+                        }
+                    }
                 }
             } else {
                 ItemStack item = ExoticGarden.harvestPlant(e.getBlock());
