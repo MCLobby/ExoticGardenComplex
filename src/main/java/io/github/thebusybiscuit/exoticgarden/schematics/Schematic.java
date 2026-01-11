@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -113,40 +114,45 @@ public class Schematic {
                     if (blockType.isAir() || org.bukkit.Tag.SAPLINGS.isTagged(blockType) || (!blockType.isSolid() && !blockType.isInteractable() && !SlimefunTag.UNBREAKABLE_MATERIALS.isTagged(blockType))) {
                         Material material = parseId(blocks[index], blockData[index]);
 
-                        if (material != null) {
-                            if (blocks[index] != 0) {
-                                block.setType(material, doPhysics);
-                            }
-
-                            BlockDataController blockDataController =
-                                    Slimefun.getDatabaseManager().getBlockDataController();
-
-                            if (org.bukkit.Tag.LEAVES.isTagged(material) && ThreadLocalRandom.current().nextInt(100) < 25) {
-                                Optional<SlimefunItem> slimefunItemOptional =
-                                        Optional.ofNullable(SlimefunItem.getByItem(tree.getItem()));
-
-                                /*
-                                 * Fix: There already a block in this location.
-                                 */
-                                try {
-                                    slimefunItemOptional.ifPresent(slimefunItem -> blockDataController.createBlock(block.getLocation(), slimefunItem.getId()));
-                                } catch (IllegalStateException illegalStateException) {
-                                    // ignore
+                        
+                        Bukkit.getScheduler().runTask(ExoticGarden.getInstance(), () -> {
+                        	if (material != null) {
+                                if (blocks[index] != 0) {
+                                    block.setType(material, doPhysics);
                                 }
-                            } else if (material == Material.PLAYER_HEAD) {
-                                Rotatable s = (Rotatable) block.getBlockData();
 
-                                s.setRotation(BLOCK_FACES[ThreadLocalRandom.current().nextInt(BLOCK_FACES.length)]);
-                                block.setBlockData(s, doPhysics);
+                                BlockDataController blockDataController =
+                                        Slimefun.getDatabaseManager().getBlockDataController();
 
-                                PlayerHead.setSkin(block, PlayerSkin.fromHashCode(tree.getTexture()), true);
+                                if (org.bukkit.Tag.LEAVES.isTagged(material) && ThreadLocalRandom.current().nextInt(100) < 25) {
+                                    Optional<SlimefunItem> slimefunItemOptional =
+                                            Optional.ofNullable(SlimefunItem.getByItem(tree.getItem()));
 
-                                Optional<SlimefunItem> slimefunItemOptional =
-                                        Optional.ofNullable(SlimefunItem.getByItem(tree.getFruit()));
+                                    /*
+                                     * Fix: There already a block in this location.
+                                     */
+                                    try {
+                                        slimefunItemOptional.ifPresent(slimefunItem -> blockDataController.createBlock(block.getLocation(), slimefunItem.getId()));
+                                    } catch (IllegalStateException illegalStateException) {
+                                        // ignore
+                                    }
+                                } else if (material == Material.PLAYER_HEAD) {
+                                    Rotatable s = (Rotatable) block.getBlockData();
 
-                                slimefunItemOptional.ifPresent(slimefunItem -> blockDataController.createBlock(block.getLocation(), slimefunItem.getId()));
+                                    s.setRotation(BLOCK_FACES[ThreadLocalRandom.current().nextInt(BLOCK_FACES.length)]);
+                                    block.setBlockData(s, doPhysics);
+
+                                    PlayerHead.setSkin(block, PlayerSkin.fromHashCode(tree.getTexture()), true);
+
+                                    Optional<SlimefunItem> slimefunItemOptional =
+                                            Optional.ofNullable(SlimefunItem.getByItem(tree.getFruit()));
+
+                                    slimefunItemOptional.ifPresent(slimefunItem -> blockDataController.createBlock(block.getLocation(), slimefunItem.getId()));
+                                }
                             }
-                        }
+                        	
+                        });
+                        
                     }
                 }
             }
