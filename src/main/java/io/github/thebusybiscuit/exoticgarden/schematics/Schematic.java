@@ -115,7 +115,7 @@ public class Schematic {
                         Material material = parseId(blocks[index], blockData[index]);
 
                         
-                        Bukkit.getScheduler().runTask(ExoticGarden.getInstance(), () -> {
+                        ExoticGarden.getInstance().getServer().getScheduler().scheduleSyncDelayedTask(ExoticGarden.getInstance(), () -> {
                         	if (material != null) {
                                 if (blocks[index] != 0) {
                                     block.setType(material, doPhysics);

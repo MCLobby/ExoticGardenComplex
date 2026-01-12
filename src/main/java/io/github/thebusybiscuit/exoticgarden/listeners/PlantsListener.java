@@ -328,21 +328,13 @@ public class PlantsListener implements Listener {
                         }
                         break;
                     case FRUIT, ORE_PLANT, DOUBLE_PLANT:
-                        if (isPaper) {
+                        plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> {
                             current.setType(Material.PLAYER_HEAD, false);
                             Rotatable s = (Rotatable) current.getBlockData();
                             s.setRotation(faces[random.nextInt(faces.length)]);
                             current.setBlockData(s, false);
                             PlayerHead.setSkin(current, PlayerSkin.fromHashCode(berry.getTexture()), true);
-                        } else {
-                            plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-                                current.setType(Material.PLAYER_HEAD, false);
-                                Rotatable s = (Rotatable) current.getBlockData();
-                                s.setRotation(faces[random.nextInt(faces.length)]);
-                                current.setBlockData(s, false);
-                                PlayerHead.setSkin(current, PlayerSkin.fromHashCode(berry.getTexture()), true);
-                            });
-                        }
+                        });
                         break;
                     default:
                         break;
