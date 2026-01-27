@@ -38,8 +38,11 @@ public class Crook extends SimpleSlimefunItem<ToolUseHandler> implements NotPlac
             damageItem(e.getPlayer(), tool);
 
             if (Tag.LEAVES.isTagged(e.getBlock().getType()) && ThreadLocalRandom.current().nextInt(100) < CHANCE) {
-                ItemStack sapling = new ItemStack(Material.getMaterial(e.getBlock().getType().toString().replace("LEAVES", "SAPLING")));
-                drops.add(sapling);
+                Material saplingMaterial = Material.getMaterial(e.getBlock().getType().toString().replace("LEAVES", "SAPLING"));
+                if (saplingMaterial != null) {
+                    ItemStack sapling = new ItemStack(saplingMaterial);
+                    drops.add(sapling);
+                }
             }
         };
     }
