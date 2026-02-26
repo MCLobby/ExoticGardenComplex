@@ -324,11 +324,11 @@ public class PlantsListener implements Listener {
                         if (isPaper) {
                             current.setType(Material.OAK_LEAVES, false);
                         } else {
-                            plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> current.setType(Material.OAK_LEAVES));
+                            plugin.getServer().getScheduler().runTask(plugin, () -> current.setType(Material.OAK_LEAVES));
                         }
                         break;
                     case FRUIT, ORE_PLANT, DOUBLE_PLANT:
-                        plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+                        plugin.getServer().getScheduler().runTask(plugin, () -> {
                             current.setType(Material.PLAYER_HEAD, false);
                             Rotatable s = (Rotatable) current.getBlockData();
                             s.setRotation(faces[random.nextInt(faces.length)]);
