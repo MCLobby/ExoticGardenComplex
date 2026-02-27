@@ -20,6 +20,7 @@ import com.xzavier0722.mc.plugin.slimefun4.storage.controller.BlockDataControlle
 
 import io.github.thebusybiscuit.exoticgarden.ExoticGarden;
 import io.github.thebusybiscuit.exoticgarden.Tree;
+import io.github.thebusybiscuit.exoticgarden.listeners.PlantsListener;
 import io.github.thebusybiscuit.exoticgarden.schematics.org.jnbt.ByteArrayTag;
 import io.github.thebusybiscuit.exoticgarden.schematics.org.jnbt.CompoundTag;
 import io.github.thebusybiscuit.exoticgarden.schematics.org.jnbt.NBTInputStream;
@@ -142,7 +143,7 @@ public class Schematic {
                                     s.setRotation(BLOCK_FACES[ThreadLocalRandom.current().nextInt(BLOCK_FACES.length)]);
                                     block.setBlockData(s, doPhysics);
 
-                                    PlayerHead.setSkin(block, PlayerSkin.fromHashCode(tree.getTexture()), true);
+                                    PlantsListener.optimizedSetSkin(block, tree.getTexture(), true);
 
                                     Optional<SlimefunItem> slimefunItemOptional =
                                             Optional.ofNullable(SlimefunItem.getByItem(tree.getFruit()));

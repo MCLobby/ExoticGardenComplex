@@ -10,6 +10,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -68,6 +69,7 @@ public class PlantsListener implements Listener {
     private final Config cfg;
     private final ExoticGarden plugin;
     private final BlockFace[] faces = {BlockFace.NORTH, BlockFace.NORTH_EAST, BlockFace.EAST, BlockFace.SOUTH_EAST, BlockFace.SOUTH, BlockFace.SOUTH_WEST, BlockFace.WEST, BlockFace.NORTH_WEST};
+	private static Map<String, PlayerSkin> skinCache;
 
     public PlantsListener(ExoticGarden plugin) {
         this.plugin = plugin;
@@ -314,6 +316,31 @@ public class PlantsListener implements Listener {
         }
     }
 
+    public static void optimizedSetSkin(Block block, String skinUrl, Boolean sendBlockUpdate) {
+        if (skinCache.containsKey(skinUrl)) {
+            PlayerHead.setSkin(block, skinCache.get(skinUrl), sendBlockUpdate);
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskAsynchronously(ExoticGarden.getInstance(), () -> {
+            try {
+                PlayerSkin skin = PlayerSkin.fromHashCode(skinUrl);
+                skinCache.put(skinUrl, skin);
+                Bukkit.getScheduler().runTask(ExoticGarden.getInstance(), () -> 
+                    PlayerHead.setSkin(block, skin, sendBlockUpdate)
+                );
+            } catch (Exception e) {
+            	e.printStackTrace();
+                // 异常时使用默认皮肤
+            	/*
+                Bukkit.getScheduler().runTask(plugin, () -> 
+                    PlayerHead.setSkin(block, PlayerSkin.getDefaultSkin(), false)
+                );
+                */
+            }
+        });
+    }
+    
     private void growBush(ChunkPopulateEvent e, int x, int z, Berry berry, Random random, boolean isPaper) {
         for (int y = e.getWorld().getHighestBlockYAt(x, z) + 2; y > 30; y--) {
             Block current = e.getWorld().getBlockAt(x, y, z);
@@ -324,7 +351,7 @@ public class PlantsListener implements Listener {
                         if (isPaper) {
                             current.setType(Material.OAK_LEAVES, false);
                         } else {
-                            plugin.getServer().getScheduler().runTask(plugin, () -> current.setType(Material.OAK_LEAVES));
+                            plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> current.setType(Material.OAK_LEAVES));
                         }
                         break;
                     case FRUIT, ORE_PLANT, DOUBLE_PLANT:
@@ -333,7 +360,7 @@ public class PlantsListener implements Listener {
                             Rotatable s = (Rotatable) current.getBlockData();
                             s.setRotation(faces[random.nextInt(faces.length)]);
                             current.setBlockData(s, false);
-                            PlayerHead.setSkin(current, PlayerSkin.fromHashCode(berry.getTexture()), true);
+                            optimizedSetSkin(current, berry.getTexture(), true);
                         });
                         break;
                     default:
