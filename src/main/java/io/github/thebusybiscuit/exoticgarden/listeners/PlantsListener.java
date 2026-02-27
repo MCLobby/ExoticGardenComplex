@@ -317,7 +317,7 @@ public class PlantsListener implements Listener {
     }
 
     public static void optimizedSetSkin(Block block, String skinHashCode, Boolean sendBlockUpdate) {
-        if (skinCache.containsKey(skinHashCode)) {
+        if (skinCache != null && skinCache.containsKey(skinHashCode)) {
             PlayerHead.setSkin(block, skinCache.get(skinHashCode), sendBlockUpdate);
             return;
         }
