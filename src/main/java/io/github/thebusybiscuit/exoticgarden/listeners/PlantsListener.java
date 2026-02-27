@@ -316,16 +316,16 @@ public class PlantsListener implements Listener {
         }
     }
 
-    public static void optimizedSetSkin(Block block, String skinUrl, Boolean sendBlockUpdate) {
-        if (skinCache.containsKey(skinUrl)) {
-            PlayerHead.setSkin(block, skinCache.get(skinUrl), sendBlockUpdate);
+    public static void optimizedSetSkin(Block block, String skinHashCode, Boolean sendBlockUpdate) {
+        if (skinCache.containsKey(skinHashCode)) {
+            PlayerHead.setSkin(block, skinCache.get(skinHashCode), sendBlockUpdate);
             return;
         }
 
         Bukkit.getScheduler().runTaskAsynchronously(ExoticGarden.getInstance(), () -> {
             try {
-                PlayerSkin skin = PlayerSkin.fromHashCode(skinUrl);
-                skinCache.put(skinUrl, skin);
+                PlayerSkin skin = PlayerSkin.fromHashCode(skinHashCode);
+                skinCache.put(skinHashCode, skin);
                 Bukkit.getScheduler().runTask(ExoticGarden.getInstance(), () -> 
                     PlayerHead.setSkin(block, skin, sendBlockUpdate)
                 );
