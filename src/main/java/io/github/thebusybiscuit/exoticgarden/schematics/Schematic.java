@@ -66,7 +66,6 @@ public class Schematic {
     private final short length;
     private final short height;
     private final String name;
-    private Map<String, PlayerSkin> skinCache;
 
     public Schematic(String name, short[] blocks, byte[] data, short width, short length, short height) {
         this.blocks = blocks;
@@ -144,7 +143,7 @@ public class Schematic {
                                     s.setRotation(BLOCK_FACES[ThreadLocalRandom.current().nextInt(BLOCK_FACES.length)]);
                                     block.setBlockData(s, doPhysics);
 
-                                    PlayerHead.setSkin(block, PlayerSkin.fromHashCode(tree.getTexture()), true);
+                                    PlantsListener.optimizedSetSkin(block, tree.getTexture(), true);
 
                                     Optional<SlimefunItem> slimefunItemOptional =
                                             Optional.ofNullable(SlimefunItem.getByItem(tree.getFruit()));

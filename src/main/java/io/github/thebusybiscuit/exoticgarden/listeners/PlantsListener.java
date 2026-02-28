@@ -69,7 +69,7 @@ public class PlantsListener implements Listener {
     private final Config cfg;
     private final ExoticGarden plugin;
     private final BlockFace[] faces = {BlockFace.NORTH, BlockFace.NORTH_EAST, BlockFace.EAST, BlockFace.SOUTH_EAST, BlockFace.SOUTH, BlockFace.SOUTH_WEST, BlockFace.WEST, BlockFace.NORTH_WEST};
-	private Map<String, PlayerSkin> skinCache;
+	private static Map<String, PlayerSkin> skinCache = new HashMap<>();
 
     public PlantsListener(ExoticGarden plugin) {
         this.plugin = plugin;
@@ -77,6 +77,31 @@ public class PlantsListener implements Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
+    public static void optimizedSetSkin(Block block, String skinHashCode, Boolean sendBlockUpdate) {
+        if (!skinCache.isEmpty() && skinCache.containsKey(skinHashCode)) {
+            PlayerHead.setSkin(block, skinCache.get(skinHashCode), sendBlockUpdate);
+            return;
+        }
+
+        Bukkit.getScheduler().runTaskAsynchronously(ExoticGarden.getInstance(), () -> {
+            try {
+                PlayerSkin skin = PlayerSkin.fromHashCode(skinHashCode);
+                skinCache.put(skinHashCode, skin);
+                Bukkit.getScheduler().runTask(ExoticGarden.getInstance(), () -> 
+                    PlayerHead.setSkin(block, skin, sendBlockUpdate)
+                );
+            } catch (Exception e) {
+            	e.printStackTrace();
+                // 异常时使用默认皮肤
+            	/*
+                Bukkit.getScheduler().runTask(plugin, () -> 
+                    PlayerHead.setSkin(block, PlayerSkin.getDefaultSkin(), false)
+                );
+                */
+            }
+        });
+    }
+    
     @EventHandler
     public void onWateringCanWater(PlayerInteractEvent e) {
         if (!ExoticGarden.instance.isFluffyEnabled()) {
@@ -316,30 +341,6 @@ public class PlantsListener implements Listener {
         }
     }
 
-    public void optimizedSetSkin(Block block, String skinHashCode, Boolean sendBlockUpdate) {
-        if (skinCache != null && skinCache.containsKey(skinHashCode)) {
-            PlayerHead.setSkin(block, skinCache.get(skinHashCode), sendBlockUpdate);
-            return;
-        }
-
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                PlayerSkin skin = PlayerSkin.fromHashCode(skinHashCode);
-                skinCache.put(skinHashCode, skin);
-                Bukkit.getScheduler().runTask(plugin, () -> 
-                    PlayerHead.setSkin(block, skin, sendBlockUpdate)
-                );
-            } catch (Exception e) {
-            	e.printStackTrace();
-                // 异常时使用默认皮肤
-            	/*
-                Bukkit.getScheduler().runTask(plugin, () -> 
-                    PlayerHead.setSkin(block, PlayerSkin.getDefaultSkin(), false)
-                );
-                */
-            }
-        });
-    }
     
     private void growBush(ChunkPopulateEvent e, int x, int z, Berry berry, Random random, boolean isPaper) {
         for (int y = e.getWorld().getHighestBlockYAt(x, z) + 2; y > 30; y--) {
