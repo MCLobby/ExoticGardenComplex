@@ -66,6 +66,7 @@ public class Schematic {
     private final short length;
     private final short height;
     private final String name;
+    private Map<String, PlayerSkin> skinCache;
 
     public Schematic(String name, short[] blocks, byte[] data, short width, short length, short height) {
         this.blocks = blocks;
@@ -79,7 +80,7 @@ public class Schematic {
     public static void pasteSchematic(Location loc, Tree tree, boolean doPhysics) {
         pasteSchematic(loc.getWorld(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), tree, doPhysics);
     }
-
+    
     public static void pasteSchematic(World world, int x1, int y1, int z1, Tree tree, boolean doPhysics) {
         Schematic schematic;
 
@@ -143,7 +144,7 @@ public class Schematic {
                                     s.setRotation(BLOCK_FACES[ThreadLocalRandom.current().nextInt(BLOCK_FACES.length)]);
                                     block.setBlockData(s, doPhysics);
 
-                                    PlantsListener.optimizedSetSkin(block, tree.getTexture(), true);
+                                    PlayerHead.setSkin(block, PlayerSkin.fromHashCode(tree.getTexture()), true);
 
                                     Optional<SlimefunItem> slimefunItemOptional =
                                             Optional.ofNullable(SlimefunItem.getByItem(tree.getFruit()));

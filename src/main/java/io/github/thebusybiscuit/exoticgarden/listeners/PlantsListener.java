@@ -69,7 +69,7 @@ public class PlantsListener implements Listener {
     private final Config cfg;
     private final ExoticGarden plugin;
     private final BlockFace[] faces = {BlockFace.NORTH, BlockFace.NORTH_EAST, BlockFace.EAST, BlockFace.SOUTH_EAST, BlockFace.SOUTH, BlockFace.SOUTH_WEST, BlockFace.WEST, BlockFace.NORTH_WEST};
-	private static Map<String, PlayerSkin> skinCache;
+	private Map<String, PlayerSkin> skinCache;
 
     public PlantsListener(ExoticGarden plugin) {
         this.plugin = plugin;
@@ -282,14 +282,14 @@ public class PlantsListener implements Listener {
                             Rotatable rotatable = (Rotatable) blockAbove.getBlockData();
                             rotatable.setRotation(faces[ThreadLocalRandom.current().nextInt(faces.length)]);
                             blockAbove.setBlockData(rotatable, false);
-                            PlayerHead.setSkin(blockAbove, PlayerSkin.fromHashCode(berry.getTexture()), true);
+                            optimizedSetSkin(blockAbove, berry.getTexture(), true);
                         }
                         default -> {
                             e.getLocation().getBlock().setType(Material.PLAYER_HEAD, false);
                             Rotatable s = (Rotatable) e.getLocation().getBlock().getBlockData();
                             s.setRotation(faces[ThreadLocalRandom.current().nextInt(faces.length)]);
                             e.getLocation().getBlock().setBlockData(s);
-                            PlayerHead.setSkin(e.getLocation().getBlock(), PlayerSkin.fromHashCode(berry.getTexture()), true);
+                            optimizedSetSkin(e.getLocation().getBlock(), berry.getTexture(), true);
                         }
                     }
 
@@ -316,17 +316,17 @@ public class PlantsListener implements Listener {
         }
     }
 
-    public static void optimizedSetSkin(Block block, String skinHashCode, Boolean sendBlockUpdate) {
+    public void optimizedSetSkin(Block block, String skinHashCode, Boolean sendBlockUpdate) {
         if (skinCache != null && skinCache.containsKey(skinHashCode)) {
             PlayerHead.setSkin(block, skinCache.get(skinHashCode), sendBlockUpdate);
             return;
         }
 
-        Bukkit.getScheduler().runTaskAsynchronously(ExoticGarden.getInstance(), () -> {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
                 PlayerSkin skin = PlayerSkin.fromHashCode(skinHashCode);
                 skinCache.put(skinHashCode, skin);
-                Bukkit.getScheduler().runTask(ExoticGarden.getInstance(), () -> 
+                Bukkit.getScheduler().runTask(plugin, () -> 
                     PlayerHead.setSkin(block, skin, sendBlockUpdate)
                 );
             } catch (Exception e) {
@@ -623,7 +623,7 @@ public class PlantsListener implements Listener {
                                 rotatable.setRotation(faces[ThreadLocalRandom.current().nextInt(faces.length)]);
                                 blockAbove.setBlockData(rotatable);
 
-                                PlayerHead.setSkin(blockAbove, PlayerSkin.fromHashCode(berry.getTexture()), false);
+                                optimizedSetSkin(blockAbove, berry.getTexture(), false);
                                 break;
                             default:
                                 l.getBlock().setType(Material.PLAYER_HEAD, false);
@@ -631,7 +631,7 @@ public class PlantsListener implements Listener {
                                 s.setRotation(faces[ThreadLocalRandom.current().nextInt(faces.length)]);
                                 l.getBlock().setBlockData(s);
 
-                                PlayerHead.setSkin(l.getBlock(), PlayerSkin.fromHashCode(berry.getTexture()), false);
+                                optimizedSetSkin(l.getBlock(), berry.getTexture(), false);
                                 break;
                         }
 
