@@ -84,23 +84,23 @@ public class PlantsListener implements Listener {
         }
 
         Bukkit.getScheduler().runTaskAsynchronously(ExoticGarden.getInstance(), () -> {
-        	try {
-        		PlayerSkin skin = PlayerSkin.fromHashCode(skinHashCode);
+            try {
+                PlayerSkin skin = PlayerSkin.fromHashCode(skinHashCode);
                 skinCache.put(skinHashCode, skin);
-                Bukkit.getScheduler().runTask(ExoticGarden.getInstance(), () -> {
-                    PlayerHead.setSkin(block, skin, sendBlockUpdate);
-                });
-        	} catch (Exception e) {
+                //Bukkit.getScheduler().runTask(ExoticGarden.getInstance(), () -> {
+                PlayerHead.setSkin(block, skin, sendBlockUpdate);
+                //});
+                    
+                
+            } catch (Exception e) {
             	e.printStackTrace();
                 // 异常时使用默认皮肤
             	/*
-                Bukkit.getScheduler().runTask(RykenSlimefunCustomizer.INSTANCE, () -> 
+                Bukkit.getScheduler().runTask(plugin, () -> 
                     PlayerHead.setSkin(block, PlayerSkin.getDefaultSkin(), false)
                 );
                 */
             }
-                
-                    
         });
     }
     
