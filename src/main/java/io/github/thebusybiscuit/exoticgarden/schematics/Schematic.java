@@ -143,7 +143,10 @@ public class Schematic {
                                     s.setRotation(BLOCK_FACES[ThreadLocalRandom.current().nextInt(BLOCK_FACES.length)]);
                                     block.setBlockData(s, doPhysics);
 
-                                    PlantsListener.optimizedSetSkin(block, tree.getTexture(), true);
+                                    if (block.getType() == Material.PLAYER_HEAD) {
+                                    	PlantsListener.optimizedSetSkin(block, tree.getTexture(), true);
+                                    }
+                                    
 
                                     Optional<SlimefunItem> slimefunItemOptional =
                                             Optional.ofNullable(SlimefunItem.getByItem(tree.getFruit()));

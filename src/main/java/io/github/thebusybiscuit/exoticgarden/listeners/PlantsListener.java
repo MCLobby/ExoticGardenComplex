@@ -87,9 +87,11 @@ public class PlantsListener implements Listener {
             try {
                 PlayerSkin skin = PlayerSkin.fromHashCode(skinHashCode);
                 skinCache.put(skinHashCode, skin);
-                Bukkit.getScheduler().runTask(ExoticGarden.getInstance(), () -> 
-                    PlayerHead.setSkin(block, skin, sendBlockUpdate)
-                );
+                //Bukkit.getScheduler().runTask(ExoticGarden.getInstance(), () -> {
+                PlayerHead.setSkin(block, skin, sendBlockUpdate);
+                //});
+                    
+                
             } catch (Exception e) {
             	e.printStackTrace();
                 // 异常时使用默认皮肤
@@ -303,18 +305,31 @@ public class PlantsListener implements Listener {
                             }
                             BlockStorage.store(blockAbove, berry.getItem());
                             e.getLocation().getBlock().setType(Material.OAK_LEAVES, false);
-                            blockAbove.setType(Material.PLAYER_HEAD, false);
-                            Rotatable rotatable = (Rotatable) blockAbove.getBlockData();
-                            rotatable.setRotation(faces[ThreadLocalRandom.current().nextInt(faces.length)]);
-                            blockAbove.setBlockData(rotatable, false);
-                            optimizedSetSkin(blockAbove, berry.getTexture(), true);
+                            Bukkit.getScheduler().runTask(plugin, () -> {
+                            	blockAbove.setType(Material.PLAYER_HEAD, false);
+                                Rotatable rotatable = (Rotatable) blockAbove.getBlockData();
+                                rotatable.setRotation(faces[ThreadLocalRandom.current().nextInt(faces.length)]);
+                                blockAbove.setBlockData(rotatable, false);
+                                if (blockAbove.getType() == Material.PLAYER_HEAD) {
+                                	optimizedSetSkin(blockAbove, berry.getTexture(), true);
+                                }
+                                
+                            	
+                            });
+                            
                         }
                         default -> {
-                            e.getLocation().getBlock().setType(Material.PLAYER_HEAD, false);
-                            Rotatable s = (Rotatable) e.getLocation().getBlock().getBlockData();
-                            s.setRotation(faces[ThreadLocalRandom.current().nextInt(faces.length)]);
-                            e.getLocation().getBlock().setBlockData(s);
-                            optimizedSetSkin(e.getLocation().getBlock(), berry.getTexture(), true);
+                        	Bukkit.getScheduler().runTask(plugin, () -> {
+                        		e.getLocation().getBlock().setType(Material.PLAYER_HEAD, false);
+                                Rotatable s = (Rotatable) e.getLocation().getBlock().getBlockData();
+                                s.setRotation(faces[ThreadLocalRandom.current().nextInt(faces.length)]);
+                                e.getLocation().getBlock().setBlockData(s);
+                                if (e.getLocation().getBlock().getType() == Material.PLAYER_HEAD) {
+                                	optimizedSetSkin(e.getLocation().getBlock(), berry.getTexture(), true);
+                                }
+                        	});
+                            
+                            
                         }
                     }
 
@@ -361,7 +376,10 @@ public class PlantsListener implements Listener {
                             Rotatable s = (Rotatable) current.getBlockData();
                             s.setRotation(faces[random.nextInt(faces.length)]);
                             current.setBlockData(s, false);
-                            optimizedSetSkin(current, berry.getTexture(), true);
+                            if (current.getType() == Material.PLAYER_HEAD) {
+                            	optimizedSetSkin(current, berry.getTexture(), true);
+                            }
+                            
                         });
                         break;
                     default:
@@ -479,7 +497,7 @@ public class PlantsListener implements Listener {
 
         if (item != null) {
             e.setCancelled(true);
-            e.getBlock().setType(Material.AIR);
+            e.getBlock().setType(Material.AIR, false);
             e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), item);
         }
     }
@@ -619,20 +637,30 @@ public class PlantsListener implements Listener {
 
                                 BlockStorage.store(blockAbove, berry.getItem());
                                 l.getBlock().setType(Material.OAK_LEAVES, false);
-                                blockAbove.setType(Material.PLAYER_HEAD, false);
-                                Rotatable rotatable = (Rotatable) blockAbove.getBlockData();
-                                rotatable.setRotation(faces[ThreadLocalRandom.current().nextInt(faces.length)]);
-                                blockAbove.setBlockData(rotatable);
+                                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                                	blockAbove.setType(Material.PLAYER_HEAD, false);
+                                    Rotatable rotatable = (Rotatable) blockAbove.getBlockData();
+                                    rotatable.setRotation(faces[ThreadLocalRandom.current().nextInt(faces.length)]);
+                                    blockAbove.setBlockData(rotatable);
+                                    if (blockAbove.getType() == Material.PLAYER_HEAD) {
+                                    	optimizedSetSkin(blockAbove, berry.getTexture(), false);
+                                    }
 
-                                optimizedSetSkin(blockAbove, berry.getTexture(), false);
+                                    
+                                });
+                                
                                 break;
                             default:
-                                l.getBlock().setType(Material.PLAYER_HEAD, false);
-                                Rotatable s = (Rotatable) l.getBlock().getBlockData();
-                                s.setRotation(faces[ThreadLocalRandom.current().nextInt(faces.length)]);
-                                l.getBlock().setBlockData(s);
-
-                                optimizedSetSkin(l.getBlock(), berry.getTexture(), false);
+                            	plugin.getServer().getScheduler().runTask(plugin, () -> {
+                            		l.getBlock().setType(Material.PLAYER_HEAD, false);
+                                    Rotatable s = (Rotatable) l.getBlock().getBlockData();
+                                    s.setRotation(faces[ThreadLocalRandom.current().nextInt(faces.length)]);
+                                    l.getBlock().setBlockData(s);
+                                    if (l.getBlock().getType() == Material.PLAYER_HEAD) {
+                                    	optimizedSetSkin(l.getBlock(), berry.getTexture(), false);
+                                    }
+                            	});
+                                
                                 break;
                         }
 
