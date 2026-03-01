@@ -8,7 +8,6 @@ import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -28,8 +27,6 @@ import io.github.thebusybiscuit.exoticgarden.schematics.org.jnbt.ShortTag;
 import io.github.thebusybiscuit.exoticgarden.schematics.org.jnbt.Tag;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
-import io.github.thebusybiscuit.slimefun4.libraries.dough.skins.PlayerHead;
-import io.github.thebusybiscuit.slimefun4.libraries.dough.skins.PlayerSkin;
 import io.github.thebusybiscuit.slimefun4.utils.tags.SlimefunTag;
 
 /*
@@ -143,7 +140,7 @@ public class Schematic {
                                     s.setRotation(BLOCK_FACES[ThreadLocalRandom.current().nextInt(BLOCK_FACES.length)]);
                                     block.setBlockData(s, doPhysics);
 
-                                    PlantsListener.optimizedSetSkin(block, tree.getTexture(), true);
+                                    PlantsListener.setSkullAtLocation(block.getLocation(), tree.getTexture());
 
                                     Optional<SlimefunItem> slimefunItemOptional =
                                             Optional.ofNullable(SlimefunItem.getByItem(tree.getFruit()));

@@ -10,7 +10,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -42,6 +41,11 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldedit.extension.input.ParserContext;
+import com.sk89q.worldedit.world.block.BaseBlock;
 import com.xzavier0722.mc.plugin.slimefun4.storage.util.StorageCacheUtils;
 
 import io.github.thebusybiscuit.exoticgarden.Berry;
@@ -55,8 +59,6 @@ import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.config.Config;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.protection.Interaction;
-import io.github.thebusybiscuit.slimefun4.libraries.dough.skins.PlayerHead;
-import io.github.thebusybiscuit.slimefun4.libraries.dough.skins.PlayerSkin;
 import io.github.thebusybiscuit.slimefun4.libraries.paperlib.PaperLib;
 import io.github.thebusybiscuit.slimefun4.utils.tags.SlimefunTag;
 import io.ncbpfluffybear.fluffymachines.utils.FluffyItems;
@@ -69,7 +71,6 @@ public class PlantsListener implements Listener {
     private final Config cfg;
     private final ExoticGarden plugin;
     private final BlockFace[] faces = {BlockFace.NORTH, BlockFace.NORTH_EAST, BlockFace.EAST, BlockFace.SOUTH_EAST, BlockFace.SOUTH, BlockFace.SOUTH_WEST, BlockFace.WEST, BlockFace.NORTH_WEST};
-	private static Map<String, PlayerSkin> skinCache = new HashMap<>();
 
     public PlantsListener(ExoticGarden plugin) {
         this.plugin = plugin;
@@ -77,29 +78,29 @@ public class PlantsListener implements Listener {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
-    public static void optimizedSetSkin(Block block, String skinHashCode, Boolean sendBlockUpdate) {
-        if (!skinCache.isEmpty() && skinCache.containsKey(skinHashCode)) {
-            PlayerHead.setSkin(block, skinCache.get(skinHashCode), sendBlockUpdate);
-            return;
-        }
+    public static void setSkullAtLocation(Location loc, String base64Hash) {
+        // 1. 将 Bukkit Location 转换为 FAWE 的坐标与世界
+        var blockVector = BukkitAdapter.asBlockVector(loc);
+        var world = BukkitAdapter.adapt(loc.getWorld());
 
-        Bukkit.getScheduler().runTaskAsynchronously(ExoticGarden.getInstance(), () -> {
-            try {
-                PlayerSkin skin = PlayerSkin.fromHashCode(skinHashCode);
-                skinCache.put(skinHashCode, skin);
-                Bukkit.getScheduler().runTask(ExoticGarden.getInstance(), () -> 
-                    PlayerHead.setSkin(block, skin, sendBlockUpdate)
-                );
-            } catch (Exception e) {
-            	e.printStackTrace();
-                // 异常时使用默认皮肤
-            	/*
-                Bukkit.getScheduler().runTask(plugin, () -> 
-                    PlayerHead.setSkin(block, PlayerSkin.getDefaultSkin(), false)
-                );
-                */
-            }
-        });
+        // 2. 这里的 base64Hash 对应 Minecraft-Heads 的 Value
+        // 1.21.1 必须使用 profile 数组组件格式
+        String blockData = "minecraft:player_head[profile={properties:[{name:\"textures\",value:\"" + base64Hash + "\"}]}]";
+
+        // 3. 使用 EditSession 进行异步/高效设置
+        try (EditSession editSession = WorldEdit.getInstance().newEditSession(world)) {
+            // 解析字符串为 BlockState
+            BaseBlock headState = WorldEdit.getInstance()
+                    .getBlockFactory()
+                    .parseFromInput(blockData, new ParserContext());
+
+            // 设置方块
+            editSession.setBlock(blockVector, headState);
+            // 记得 flush 会话或在 try-with-resources 中自动关闭
+            editSession.flushQueue();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     
     @EventHandler
@@ -272,6 +273,7 @@ public class PlantsListener implements Listener {
         growStructure0(e);
     }
 
+    
     private boolean growStructure0(StructureGrowEvent e) {
         SlimefunItem item = StorageCacheUtils.getSfItem(e.getLocation());
 
@@ -307,14 +309,14 @@ public class PlantsListener implements Listener {
                             Rotatable rotatable = (Rotatable) blockAbove.getBlockData();
                             rotatable.setRotation(faces[ThreadLocalRandom.current().nextInt(faces.length)]);
                             blockAbove.setBlockData(rotatable, false);
-                            optimizedSetSkin(blockAbove, berry.getTexture(), true);
+                            setSkullAtLocation(blockAbove.getLocation(), berry.getTexture());
                         }
                         default -> {
                             e.getLocation().getBlock().setType(Material.PLAYER_HEAD, false);
                             Rotatable s = (Rotatable) e.getLocation().getBlock().getBlockData();
                             s.setRotation(faces[ThreadLocalRandom.current().nextInt(faces.length)]);
                             e.getLocation().getBlock().setBlockData(s);
-                            optimizedSetSkin(e.getLocation().getBlock(), berry.getTexture(), true);
+                            setSkullAtLocation(e.getLocation(), berry.getTexture());
                         }
                     }
 
@@ -361,7 +363,7 @@ public class PlantsListener implements Listener {
                             Rotatable s = (Rotatable) current.getBlockData();
                             s.setRotation(faces[random.nextInt(faces.length)]);
                             current.setBlockData(s, false);
-                            optimizedSetSkin(current, berry.getTexture(), true);
+                            setSkullAtLocation(current.getLocation(), berry.getTexture());
                         });
                         break;
                     default:
@@ -624,7 +626,7 @@ public class PlantsListener implements Listener {
                                 rotatable.setRotation(faces[ThreadLocalRandom.current().nextInt(faces.length)]);
                                 blockAbove.setBlockData(rotatable);
 
-                                optimizedSetSkin(blockAbove, berry.getTexture(), false);
+                                setSkullAtLocation(blockAbove.getLocation(), berry.getTexture());
                                 break;
                             default:
                                 l.getBlock().setType(Material.PLAYER_HEAD, false);
@@ -632,7 +634,7 @@ public class PlantsListener implements Listener {
                                 s.setRotation(faces[ThreadLocalRandom.current().nextInt(faces.length)]);
                                 l.getBlock().setBlockData(s);
 
-                                optimizedSetSkin(l.getBlock(), berry.getTexture(), false);
+                                setSkullAtLocation(l, berry.getTexture());
                                 break;
                         }
 
