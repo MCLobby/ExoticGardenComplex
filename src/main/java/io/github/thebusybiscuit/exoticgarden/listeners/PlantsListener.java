@@ -79,7 +79,10 @@ public class PlantsListener implements Listener {
 
     public static void optimizedSetSkin(Block block, String skinHashCode, Boolean sendBlockUpdate) {
         if (!skinCache.isEmpty() && skinCache.containsKey(skinHashCode)) {
-            PlayerHead.setSkin(block, skinCache.get(skinHashCode), sendBlockUpdate);
+        	Bukkit.getScheduler().runTask(ExoticGarden.getInstance(), () -> {
+        		PlayerHead.setSkin(block, skinCache.get(skinHashCode), sendBlockUpdate);
+            });
+            
             return;
         }
 
