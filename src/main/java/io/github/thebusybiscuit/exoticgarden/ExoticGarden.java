@@ -50,6 +50,7 @@ import com.be.utils.BEListener;
 import com.be.utils.RegistryHandler;
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.world.block.BlockTypes;
 import com.xzavier0722.mc.plugin.slimefun4.storage.util.StorageCacheUtils;
@@ -154,7 +155,8 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
         }
 
         try (EditSession fastSession = WorldEdit.getInstance().newEditSessionBuilder()
-                .allowedRegionsEverywhere() // 允许任何区域
+        		.world(BukkitAdapter.adapt(block.getLocation().getWorld()))
+        		.allowedRegionsEverywhere() // 允许任何区域
                 .limitUnlimited() // 解除限制
                 .changeSetNull() // 不记录变化
                 .fastMode(true) // 禁用快速模式（true = 无物理/粒子，false = 有物理/粒子）
@@ -1660,7 +1662,8 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
             fruit.getWorld().playEffect(loc, Effect.STEP_SOUND, Material.OAK_LEAVES);
             fruit.getWorld().dropItemNaturally(loc, fruits);
             try (EditSession fastSession = WorldEdit.getInstance().newEditSessionBuilder()
-                    .allowedRegionsEverywhere() // 允许任何区域
+            		.world(BukkitAdapter.adapt(loc.getWorld()))
+            		.allowedRegionsEverywhere() // 允许任何区域
                     .limitUnlimited() // 解除限制
                     .changeSetNull() // 不记录变化
                     .fastMode(true) // 禁用快速模式（true = 无物理/粒子，false = 有物理/粒子）
