@@ -7,8 +7,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Random;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
@@ -29,6 +27,7 @@ import com.sk89q.worldedit.world.block.BlockState;
 import com.sk89q.worldedit.world.block.BlockTypes;
 import com.xzavier0722.mc.plugin.slimefun4.storage.controller.BlockDataController;
 
+import city.norain.slimefun4.SlimefunExtended;
 import io.github.thebusybiscuit.exoticgarden.ExoticGarden;
 import io.github.thebusybiscuit.exoticgarden.Tree;
 import io.github.thebusybiscuit.exoticgarden.schematics.org.jnbt.ByteArrayTag;
@@ -67,10 +66,6 @@ import io.github.thebusybiscuit.slimefun4.utils.tags.SlimefunTag;
 @EnableAsync
 public class Schematic {
 
-	private static Random random = ThreadLocalRandom.current();
-	private static final String[] facings = {"north", "east", "south", "west", "up", "down"};
-    //private static final BlockFace[] BLOCK_FACES = {BlockFace.NORTH, BlockFace.NORTH_EAST, BlockFace.EAST, BlockFace.SOUTH_EAST, BlockFace.SOUTH, BlockFace.SOUTH_WEST, BlockFace.WEST, BlockFace.NORTH_WEST};
-
 	// ConcurrentHashMap 的 computeIfAbsent 是原子操作
 	private static ConcurrentHashMap<String, BlockState> threadSafeHeadCache = new ConcurrentHashMap<>();
 	
@@ -90,8 +85,8 @@ public class Schematic {
         this.name = name;
     }
 
-    private static BlockState getCachedHead(String base64Value, String facing, boolean isWall) {
-        String cacheKey = base64Value + "|" + facing + "|" + isWall;
+    private static BlockState getCachedHead(String base64Value, int facing) {
+        String cacheKey = base64Value + "|" + facing;
         
         // 这行代码的作用：
         // 1. 检查 cacheKey 是否已经在 HEAD_CACHE 中
@@ -101,21 +96,21 @@ public class Schematic {
         // 5. 返回这个 BlockState
         return threadSafeHeadCache.computeIfAbsent(cacheKey, k -> {
             // 这个 lambda 只在键不存在时执行
-            String blockId = isWall ? "minecraft:player_wall_head" : "minecraft:player_head";
-            String stateStr = String.format(
-                "%s[facing=%s]{SkullOwner:{Id:\"[I;%d,%d,%d,%d]\",Properties:{textures:[{Value:\"%s\"}]}}}",
-                blockId,
-                facing,
-                UUID.randomUUID().hashCode(),
-                UUID.randomUUID().hashCode(),
-                UUID.randomUUID().hashCode(),
-                UUID.randomUUID().hashCode(),
-                base64Value
-            );
-            return BlockState.get(stateStr);
+        	String blockStateStr = "minecraft:player_head[rotation=" + facing + "]";
+        	String componentPart;
+            if (SlimefunExtended.getMinecraftVersion().isAtLeast(1, 20, 5)) {
+                // 1.20.5 后 数据组件格式
+                componentPart = "{minecraft:profile:{id:[I;0,0,0,0],properties:[{name:\"textures\",value:\"" + base64Value + "\"}]}}";
+            } else {
+                // 旧版本 NBT 格式
+                componentPart = "{SkullOwner:{Id:\"[I;0,0,0,0]\",Properties:{textures:[{Value:\"" + base64Value + "\"}]}}}";
+            }
+            BlockState headState = BlockState.get(blockStateStr + componentPart);
+            return headState;
         });
     }
-    @Async
+
+	@Async
     public static String textureToBase64(String texture) {
     	 String json = "{\"textures\":{\"SKIN\":{\"url\":\"http://textures.minecraft.net/texture/" + texture + "}}}";
          String base64 = Base64.getEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8));
@@ -123,8 +118,8 @@ public class Schematic {
     }
     @Async
     public static void setRandomFacingHeadFromTexture(EditSession editSession, BlockVector3 pos, String texture) {
-    	String facing = facings[random.nextInt(facings.length)];
-    	BlockState headState = getCachedHead(textureToBase64(texture), facing, false);
+    	int facing = ThreadLocalRandom.current().nextInt(16);
+    	BlockState headState = getCachedHead(textureToBase64(texture), facing);
         editSession.setBlock(pos, headState);
    	
     }
@@ -152,9 +147,6 @@ public class Schematic {
                     .maxBlocks(-1)
                     .fastMode(true)
                     .build()) {
-            	
-            	Random random = ThreadLocalRandom.current();
-                int modified = 0;
                 
             	short[] blocks = schematic.getBlocks();
                 byte[] blockData = schematic.getData();
