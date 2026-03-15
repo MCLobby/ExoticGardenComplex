@@ -3,8 +3,13 @@ package io.github.thebusybiscuit.exoticgarden.schematics;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 
@@ -13,14 +18,17 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.Rotatable;
 
+import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.world.block.BlockState;
+import com.sk89q.worldedit.world.block.BlockTypes;
 import com.xzavier0722.mc.plugin.slimefun4.storage.controller.BlockDataController;
 
 import io.github.thebusybiscuit.exoticgarden.ExoticGarden;
 import io.github.thebusybiscuit.exoticgarden.Tree;
-import io.github.thebusybiscuit.exoticgarden.listeners.PlantsListener;
 import io.github.thebusybiscuit.exoticgarden.schematics.org.jnbt.ByteArrayTag;
 import io.github.thebusybiscuit.exoticgarden.schematics.org.jnbt.CompoundTag;
 import io.github.thebusybiscuit.exoticgarden.schematics.org.jnbt.NBTInputStream;
@@ -28,8 +36,6 @@ import io.github.thebusybiscuit.exoticgarden.schematics.org.jnbt.ShortTag;
 import io.github.thebusybiscuit.exoticgarden.schematics.org.jnbt.Tag;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
-import io.github.thebusybiscuit.slimefun4.libraries.dough.skins.PlayerHead;
-import io.github.thebusybiscuit.slimefun4.libraries.dough.skins.PlayerSkin;
 import io.github.thebusybiscuit.slimefun4.utils.tags.SlimefunTag;
 
 /*
@@ -58,8 +64,13 @@ import io.github.thebusybiscuit.slimefun4.utils.tags.SlimefunTag;
  */
 public class Schematic {
 
-    private static final BlockFace[] BLOCK_FACES = {BlockFace.NORTH, BlockFace.NORTH_EAST, BlockFace.EAST, BlockFace.SOUTH_EAST, BlockFace.SOUTH, BlockFace.SOUTH_WEST, BlockFace.WEST, BlockFace.NORTH_WEST};
+	private static Random random = ThreadLocalRandom.current();
+	private static final String[] facings = {"north", "east", "south", "west", "up", "down"};
+    //private static final BlockFace[] BLOCK_FACES = {BlockFace.NORTH, BlockFace.NORTH_EAST, BlockFace.EAST, BlockFace.SOUTH_EAST, BlockFace.SOUTH, BlockFace.SOUTH_WEST, BlockFace.WEST, BlockFace.NORTH_WEST};
 
+	// ConcurrentHashMap 的 computeIfAbsent 是原子操作
+	private static ConcurrentHashMap<String, BlockState> threadSafeHeadCache = new ConcurrentHashMap<>();
+	
     private final short[] blocks;
     private final byte[] data;
     private final short width;
@@ -76,91 +87,147 @@ public class Schematic {
         this.name = name;
     }
 
+    private static BlockState getCachedHead(String base64Value, String facing, boolean isWall) {
+        String cacheKey = base64Value + "|" + facing + "|" + isWall;
+        
+        // 这行代码的作用：
+        // 1. 检查 cacheKey 是否已经在 HEAD_CACHE 中
+        // 2. 如果存在：直接返回已有的 BlockState
+        // 3. 如果不存在：执行 lambda 表达式创建新的 BlockState
+        // 4. 将新创建的 BlockState 存入缓存
+        // 5. 返回这个 BlockState
+        return threadSafeHeadCache.computeIfAbsent(cacheKey, k -> {
+            // 这个 lambda 只在键不存在时执行
+            String blockId = isWall ? "minecraft:player_wall_head" : "minecraft:player_head";
+            String stateStr = String.format(
+                "%s[facing=%s]{SkullOwner:{Id:\"[I;%d,%d,%d,%d]\",Properties:{textures:[{Value:\"%s\"}]}}}",
+                blockId,
+                facing,
+                UUID.randomUUID().hashCode(),
+                UUID.randomUUID().hashCode(),
+                UUID.randomUUID().hashCode(),
+                UUID.randomUUID().hashCode(),
+                base64Value
+            );
+            return BlockState.get(stateStr);
+        });
+    }
+    public static String textureToBase64(String texture) {
+    	 String json = "{\"textures\":{\"SKIN\":{\"url\":\"http://textures.minecraft.net/texture/" + texture + "}}}";
+         String base64 = Base64.getEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8));
+         return base64;
+    }
+    
+    public static void setRandomFacingHeadFromTexture(EditSession editSession, BlockVector3 pos, String texture) {
+    	String facing = facings[random.nextInt(facings.length)];
+    	BlockState headState = getCachedHead(textureToBase64(texture), facing, false);
+        editSession.setBlock(pos, headState);
+   	
+   }
     public static void pasteSchematic(Location loc, Tree tree, boolean doPhysics) {
         pasteSchematic(loc.getWorld(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), tree, doPhysics);
     }
     
     public static void pasteSchematic(World world, int x1, int y1, int z1, Tree tree, boolean doPhysics) {
-        Schematic schematic;
+    	Bukkit.getScheduler().runTaskAsynchronously(ExoticGarden.getInstance(), () -> {
+    		Schematic schematic;
 
-        try {
-            schematic = tree.getSchematic();
-        } catch (IOException e) {
-            ExoticGarden.instance.getLogger().log(Level.WARNING, "Could not paste Schematic for Tree: " + tree.getFruitID() + "_TREE (" + e.getClass().getSimpleName() + ')', e);
-            return;
-        }
-
-        short[] blocks = schematic.getBlocks();
-        byte[] blockData = schematic.getData();
-
-        short length = schematic.getLength();
-        short width = schematic.getWidth();
-        short height = schematic.getHeight();
-
-        // Performance - avoid repeatedly calculating this value in a loop
-        int processedX = x1 - length / 2;
-        int processedZ = z1 - width / 2;
-
-        for (int x = 0; x < width; ++x) {
-            for (int y = 0; y < height; ++y) {
-                for (int z = 0; z < length; ++z) {
-                    int index = y * width * length + z * width + x;
-
-                    int blockX = x + processedX;
-                    int blockY = y + y1;
-                    int blockZ = z + processedZ;
-                    Block block = world.getBlockAt(blockX, blockY, blockZ);
-                    Material blockType = block.getType();
-
-                    if (blockType.isAir() || org.bukkit.Tag.SAPLINGS.isTagged(blockType) || (!blockType.isSolid() && !blockType.isInteractable() && !SlimefunTag.UNBREAKABLE_MATERIALS.isTagged(blockType))) {
-                        Material material = parseId(blocks[index], blockData[index]);
-
-                        
-                        ExoticGarden.getInstance().getServer().getScheduler().runTask(ExoticGarden.getInstance(), () -> {
-                        	if (material != null) {
-                                if (blocks[index] != 0) {
-                                    block.setType(material, doPhysics);
-                                }
-
-                                BlockDataController blockDataController =
-                                        Slimefun.getDatabaseManager().getBlockDataController();
-
-                                if (org.bukkit.Tag.LEAVES.isTagged(material) && ThreadLocalRandom.current().nextInt(100) < 25) {
-                                    Optional<SlimefunItem> slimefunItemOptional =
-                                            Optional.ofNullable(SlimefunItem.getByItem(tree.getItem()));
-
-                                    /*
-                                     * Fix: There already a block in this location.
-                                     */
-                                    try {
-                                        slimefunItemOptional.ifPresent(slimefunItem -> blockDataController.createBlock(block.getLocation(), slimefunItem.getId()));
-                                    } catch (IllegalStateException illegalStateException) {
-                                        // ignore
-                                    }
-                                } else if (material == Material.PLAYER_HEAD) {
-                                    Rotatable s = (Rotatable) block.getBlockData();
-
-                                    s.setRotation(BLOCK_FACES[ThreadLocalRandom.current().nextInt(BLOCK_FACES.length)]);
-                                    block.setBlockData(s, doPhysics);
-
-                                    if (block.getType() == Material.PLAYER_HEAD) {
-                                    	PlantsListener.optimizedSetSkin(block, tree.getTexture(), true);
-                                    }
-                                    
-
-                                    Optional<SlimefunItem> slimefunItemOptional =
-                                            Optional.ofNullable(SlimefunItem.getByItem(tree.getFruit()));
-
-                                    slimefunItemOptional.ifPresent(slimefunItem -> blockDataController.createBlock(block.getLocation(), slimefunItem.getId()));
-                                }
-                            }
-                        	
-                        });
-                        
-                    }
-                }
+            try {
+                schematic = tree.getSchematic();
+            } catch (IOException e) {
+                ExoticGarden.instance.getLogger().log(Level.WARNING, "Could not paste Schematic for Tree: " + tree.getFruitID() + "_TREE (" + e.getClass().getSimpleName() + ')', e);
+                return;
             }
-        }
+
+            com.sk89q.worldedit.world.World faweworld = BukkitAdapter.adapt(world);
+            BlockDataController blockDataController = Slimefun.getDatabaseManager().getBlockDataController();
+            try (EditSession editSession = WorldEdit.getInstance().newEditSessionBuilder()
+        			.world(faweworld)
+                    .maxBlocks(-1)
+                    .fastMode(true)
+                    .build()) {
+            	
+            	Random random = ThreadLocalRandom.current();
+                int modified = 0;
+                
+            	short[] blocks = schematic.getBlocks();
+                byte[] blockData = schematic.getData();
+
+                short length = schematic.getLength();
+                short width = schematic.getWidth();
+                short height = schematic.getHeight();
+
+                // Performance - avoid repeatedly calculating this value in a loop
+                int processedX = x1 - length / 2;
+                int processedZ = z1 - width / 2;
+
+                for (int x = 0; x < width; ++x) {
+                    for (int y = 0; y < height; ++y) {
+                        for (int z = 0; z < length; ++z) {
+                            int index = y * width * length + z * width + x;
+
+                            int blockX = x + processedX;
+                            int blockY = y + y1;
+                            int blockZ = z + processedZ;
+                            Block block = world.getBlockAt(blockX, blockY, blockZ);
+                            Material blockType = block.getType();
+                            
+                            BlockVector3 pos = BlockVector3.at(blockX, blockY, blockZ);
+                            BlockState blockState = BlockTypes.parse(blockType.name()).getDefaultState();
+
+                            if (blockType.isAir() || org.bukkit.Tag.SAPLINGS.isTagged(blockType) || (!blockType.isSolid() && !blockType.isInteractable() && !SlimefunTag.UNBREAKABLE_MATERIALS.isTagged(blockType))) {
+                                Material material = parseId(blocks[index], blockData[index]);
+
+                                
+                                	if (material != null) {
+                                        if (blocks[index] != 0) {
+                                        	editSession.setBlock(pos, blockState);
+                                            //block.setType(material, doPhysics);
+                                        }
+
+                                       
+
+                                        if (org.bukkit.Tag.LEAVES.isTagged(material) && ThreadLocalRandom.current().nextInt(100) < 25) {
+                                            Optional<SlimefunItem> slimefunItemOptional =
+                                                    Optional.ofNullable(SlimefunItem.getByItem(tree.getItem()));
+
+                                            /*
+                                             * Fix: There already a block in this location.
+                                             */
+                                            try {
+                                                slimefunItemOptional.ifPresent(slimefunItem -> blockDataController.createBlock(block.getLocation(), slimefunItem.getId()));
+                                            } catch (IllegalStateException illegalStateException) {
+                                                // ignore
+                                            }
+                                        } else if (material == Material.PLAYER_HEAD) {
+                                        	setRandomFacingHeadFromTexture(editSession, pos, tree.getTexture());
+
+                                            Optional<SlimefunItem> slimefunItemOptional =
+                                                    Optional.ofNullable(SlimefunItem.getByItem(tree.getFruit()));
+
+                                            slimefunItemOptional.ifPresent(slimefunItem -> blockDataController.createBlock(block.getLocation(), slimefunItem.getId()));
+                                        }
+                                    }
+                                	
+                                
+                            }
+                        }
+                    }
+                    
+                    
+                }
+            	
+            	
+                editSession.flushQueue();
+                
+            } catch (Exception e) {
+            	e.printStackTrace();
+                throw new RuntimeException("批量设置头颅失败", e);
+            }
+    		
+    	});
+        
+        
     }
 
     public static Material parseId(short blockId, byte blockData) {
