@@ -2,6 +2,7 @@ package com.be.registry;
 
 import com.be.command.SetSpawnCommand;
 import com.be.command.SpawnCommand;
+
 import io.github.thebusybiscuit.exoticgarden.ExoticGarden;
 
 public class BECommands {

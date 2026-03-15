@@ -1,12 +1,13 @@
 package com.be.command;
 
-import io.github.thebusybiscuit.exoticgarden.ExoticGarden;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+
+import io.github.thebusybiscuit.exoticgarden.ExoticGarden;
 
 public class SetSpawnCommand implements CommandExecutor {
 
