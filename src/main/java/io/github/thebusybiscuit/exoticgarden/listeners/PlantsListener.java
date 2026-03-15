@@ -39,6 +39,8 @@ import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.WorldEdit;
@@ -63,6 +65,7 @@ import io.github.thebusybiscuit.slimefun4.utils.tags.SlimefunTag;
 import io.ncbpfluffybear.fluffymachines.utils.FluffyItems;
 import me.mrCookieSlime.Slimefun.api.BlockStorage;
 
+@EnableAsync
 public class PlantsListener implements Listener {
 
     private static final Map<String, SlimefunTag> nameLookup = new HashMap<>();
@@ -77,6 +80,7 @@ public class PlantsListener implements Listener {
     }
     
     @EventHandler
+    @Async
     public void onWateringCanWater(PlayerInteractEvent e) {
         if (!ExoticGarden.instance.isFluffyEnabled()) {
             return;
@@ -103,6 +107,7 @@ public class PlantsListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.LOW)
+    @Async
     public void onGrow(StructureGrowEvent e) {
         if (PaperLib.isPaper()) {
             if (PaperLib.isChunkGenerated(e.getLocation())) {
@@ -119,6 +124,7 @@ public class PlantsListener implements Listener {
     }
 
     @EventHandler
+    @Async
     public void onGenerate(ChunkPopulateEvent e) {
         if (!cfg.getOrSetDefault("options.auto-generate-plants", true)) {
             return;
@@ -196,11 +202,13 @@ public class PlantsListener implements Listener {
     }
 
     
+    @Async
     private int getWorldBorder(World world) {
         return (int) world.getWorldBorder().getSize();
     }
 
     @EventHandler
+    @Async
     public void onFastGenerate(PlayerInteractEvent event) {
         Block block = event.getClickedBlock();
         if (block == null) {
@@ -216,6 +224,7 @@ public class PlantsListener implements Listener {
         applyGoldKela(event, block, hand);
     }
 
+    @Async
     private boolean applyGoldKela(PlayerInteractEvent event, Block block, ItemStack hand) {
         if (!(StorageCacheUtils.getSfItem(block.getLocation()) instanceof BonemealableItem bi)) {
             return false;
@@ -243,10 +252,12 @@ public class PlantsListener implements Listener {
         return false;
     }
 
+    @Async
     private void growStructure(StructureGrowEvent e) {
         growStructure0(e);
     }
 
+    @Async
     private boolean growStructure0(StructureGrowEvent e) {
     	BlockDataController controller = Slimefun.getDatabaseManager().getBlockDataController();
         SlimefunItem item = StorageCacheUtils.getSfItem(e.getLocation());
@@ -327,6 +338,7 @@ public class PlantsListener implements Listener {
         return false;
     }
 
+    @Async
     private void pasteTree(ChunkPopulateEvent e, int x, int z, Tree tree) {
         for (int y = e.getWorld().getHighestBlockYAt(x, z) + 2; y > 30; y--) {
             Block current = e.getWorld().getBlockAt(x, y, z);
@@ -337,7 +349,7 @@ public class PlantsListener implements Listener {
         }
     }
 
-    
+    @Async
     private void growBush(ChunkPopulateEvent e, int x, int z, Berry berry, Random random, boolean isPaper) {
     	BlockDataController controller = Slimefun.getDatabaseManager().getBlockDataController();
     	Optional<SlimefunItem> slimefunItemOptional = Optional.ofNullable(SlimefunItem.getByItem(berry.getItem()));
@@ -386,6 +398,7 @@ public class PlantsListener implements Listener {
         
     }
 
+    @Async
     private boolean isFlat(Block current) {
         for (int i = -2; i < 2; i++) {
             for (int j = -2; j < 2; j++) {
@@ -404,6 +417,7 @@ public class PlantsListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @Async
     public void onHarvest(BlockBreakEvent e) {
         if (Slimefun.getProtectionManager().hasPermission(e.getPlayer(), e.getBlock().getLocation(), Interaction.BREAK_BLOCK)) {
             if (e.getBlock().getType() == Material.PLAYER_HEAD || Tag.LEAVES.isTagged(e.getBlock().getType())) {
@@ -444,6 +458,7 @@ public class PlantsListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @Async
     public void onDecay(LeavesDecayEvent e) {
         if (!Slimefun.getWorldSettingsService().isWorldEnabled(e.getBlock().getWorld())) {
             return;
@@ -484,6 +499,7 @@ public class PlantsListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @Async
     public void onBlockBurn(BlockBurnEvent e) {
         if (!Slimefun.getWorldSettingsService().isWorldEnabled(e.getBlock().getWorld())) {
             return;
@@ -525,6 +541,7 @@ public class PlantsListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @Async
     public void onInteract(PlayerInteractEvent e) {
         Material mainHand = e.getPlayer().getInventory().getItemInMainHand().getType();
         Material offHand = e.getPlayer().getInventory().getItemInOffHand().getType();
@@ -551,16 +568,19 @@ public class PlantsListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @Async
     public void onBlockExplode(BlockExplodeEvent e) {
         e.blockList().removeAll(getAffectedBlocks(e.blockList()));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @Async
     public void onEntityExplode(EntityExplodeEvent e) {
         e.blockList().removeAll(getAffectedBlocks(e.blockList()));
     }
 
     @EventHandler(ignoreCancelled = true)
+    @Async
     public void onBonemealPlant(BlockFertilizeEvent e) {
         Block b = e.getBlock();
         if (b.getType() == Material.OAK_SAPLING) {
@@ -574,6 +594,7 @@ public class PlantsListener implements Listener {
         }
     }
 
+    @Async
     private Set<Block> getAffectedBlocks(List<Block> blockList) {
         Set<Block> blocksToRemove = new HashSet<>();
 
@@ -589,6 +610,7 @@ public class PlantsListener implements Listener {
         return blocksToRemove;
     }
 
+    @Async
     private void dropFruitFromTree(Block block) {
     	try (EditSession fastSession = WorldEdit.getInstance().newEditSessionBuilder()
                 .allowedRegionsEverywhere() // 允许任何区域
@@ -635,6 +657,7 @@ public class PlantsListener implements Listener {
         
     }
 
+    @Async
     private void waterStructure(Location l, PlayerInteractEvent e, ItemStack wateringCan) {
     	BlockDataController controller = Slimefun.getDatabaseManager().getBlockDataController();
     	

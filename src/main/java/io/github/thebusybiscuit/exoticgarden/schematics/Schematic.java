@@ -18,6 +18,8 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import com.sk89q.worldedit.EditSession;
 import com.sk89q.worldedit.WorldEdit;
@@ -62,6 +64,7 @@ import io.github.thebusybiscuit.slimefun4.utils.tags.SlimefunTag;
  * @author Max
  * @author TheBusyBiscuit
  */
+@EnableAsync
 public class Schematic {
 
 	private static Random random = ThreadLocalRandom.current();
@@ -112,22 +115,25 @@ public class Schematic {
             return BlockState.get(stateStr);
         });
     }
+    @Async
     public static String textureToBase64(String texture) {
     	 String json = "{\"textures\":{\"SKIN\":{\"url\":\"http://textures.minecraft.net/texture/" + texture + "}}}";
          String base64 = Base64.getEncoder().encodeToString(json.getBytes(StandardCharsets.UTF_8));
          return base64;
     }
-    
+    @Async
     public static void setRandomFacingHeadFromTexture(EditSession editSession, BlockVector3 pos, String texture) {
     	String facing = facings[random.nextInt(facings.length)];
     	BlockState headState = getCachedHead(textureToBase64(texture), facing, false);
         editSession.setBlock(pos, headState);
    	
-   }
+    }
+    @Async
     public static void pasteSchematic(Location loc, Tree tree, boolean doPhysics) {
         pasteSchematic(loc.getWorld(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), tree, doPhysics);
     }
     
+    @Async
     public static void pasteSchematic(World world, int x1, int y1, int z1, Tree tree, boolean doPhysics) {
     	Bukkit.getScheduler().runTaskAsynchronously(ExoticGarden.getInstance(), () -> {
     		Schematic schematic;
@@ -188,8 +194,7 @@ public class Schematic {
                                        
 
                                         if (org.bukkit.Tag.LEAVES.isTagged(material) && ThreadLocalRandom.current().nextInt(100) < 25) {
-                                            Optional<SlimefunItem> slimefunItemOptional =
-                                                    Optional.ofNullable(SlimefunItem.getByItem(tree.getItem()));
+                                            Optional<SlimefunItem> slimefunItemOptional = Optional.ofNullable(SlimefunItem.getByItem(tree.getItem()));
 
                                             /*
                                              * Fix: There already a block in this location.

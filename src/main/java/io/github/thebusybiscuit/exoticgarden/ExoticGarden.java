@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,6 +39,8 @@ import org.bukkit.material.MaterialData;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import com.be.registry.BECommands;
 import com.be.registry.BEFoodRegistry;
@@ -45,6 +48,10 @@ import com.be.registry.BEPlants;
 import com.be.registry.BETrees;
 import com.be.utils.BEListener;
 import com.be.utils.RegistryHandler;
+import com.sk89q.worldedit.EditSession;
+import com.sk89q.worldedit.WorldEdit;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.world.block.BlockTypes;
 import com.xzavier0722.mc.plugin.slimefun4.storage.util.StorageCacheUtils;
 
 import io.github.thebusybiscuit.exoticgarden.items.BonemealableItem;
@@ -74,14 +81,12 @@ import io.github.thebusybiscuit.slimefun4.libraries.dough.items.CustomItemStack;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.skins.PlayerHead;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.skins.PlayerSkin;
 import io.github.thebusybiscuit.slimefun4.libraries.paperlib.PaperLib;
-import me.mrCookieSlime.Slimefun.api.BlockStorage;
 import net.guizhanss.guizhanlibplugin.updater.GuizhanUpdater;
 
+@EnableAsync
 public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
 
     public static final ConcurrentHashMap<String, PlayerAlcohol> drunkPlayers = new ConcurrentHashMap<>();
-    private static final String ALCOHOL_PATH = "Players.%p.Alcohol";
-    private static final String DRUNK_PATH = "Players.%p.Drunk";
     private static final List<String> drunkMsg = new ArrayList<>();
     private static final boolean skullitems = true;
     public static ExoticGarden instance;
@@ -105,6 +110,7 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
     private boolean residence = false;
     private boolean fluffy = false;
 
+    @Async
     public static ItemStack getSkull(MaterialData material, String texture) {
         try {
             if (texture.equals("NO_SKULL_SPECIFIED")) return material.toItemStack(1);
@@ -115,6 +121,7 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
         }
     }
 
+    @Async
     public static void sendDrunkMessage(Player player) {
         Random ramdom = new Random();
         player.chat(drunkMsg.get(ramdom.nextInt(drunkMsg.size())).replace("%player%", (
@@ -122,6 +129,7 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
     }
 
     @Nullable
+    @Async
     static ItemStack getItem(@Nonnull String id) {
         SlimefunItem item = SlimefunItem.getById(id);
         if (item != null) {
@@ -137,6 +145,7 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
     }
 
     @Nullable
+    @Async
     public static ItemStack harvestPlant(@Nonnull Block block) {
         SlimefunItem item = StorageCacheUtils.getSfItem(block.getLocation());
 
@@ -144,40 +153,73 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
             return null;
         }
 
-        for (Berry berry : getBerries()) {
-            if (item.getId().equalsIgnoreCase(berry.getID())) {
-                var controller = Slimefun.getDatabaseManager().getBlockDataController();
-                switch (berry.getType()) {
-                    case ORE_PLANT, DOUBLE_PLANT -> {
-                        Block plant;
-                        Block head;
-                        if (Tag.LEAVES.isTagged(block.getType())) {
-                            // Player broke the leaf block
-                            plant = block;
-                            head = block.getRelative(BlockFace.UP);
-                        } else {
-                            // Player broke the head block
-                            plant = block.getRelative(BlockFace.DOWN);
-                            head = block;
-                        }
+        try (EditSession fastSession = WorldEdit.getInstance().newEditSessionBuilder()
+                .allowedRegionsEverywhere() // 允许任何区域
+                .limitUnlimited() // 解除限制
+                .changeSetNull() // 不记录变化
+                .fastMode(true) // 禁用快速模式（true = 无物理/粒子，false = 有物理/粒子）
+                .build()) {
+        	
 
-                        block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, Material.OAK_LEAVES);
-                        head.setType(Material.AIR, false);
-                        plant.setType(Material.OAK_SAPLING, false);
-                        controller.removeBlock(head.getLocation());
-                        controller.removeBlock(plant.getLocation());
-                        BlockStorage.store(plant, getItem(berry.toBush()));
-                        return berry.getItem().clone();
-                    }
-                    default -> {
-                        block.setType(Material.OAK_SAPLING, false);
-                        controller.removeBlock(block.getLocation());
-                        BlockStorage.store(block, getItem(berry.toBush()));
-                        return berry.getItem().clone();
+        	for (Berry berry : getBerries()) {
+                if (item.getId().equalsIgnoreCase(berry.getID())) {
+                    var controller = Slimefun.getDatabaseManager().getBlockDataController();
+                    Optional<SlimefunItem> slimefunItemOptional = Optional.ofNullable(SlimefunItem.getByItem(getItem(berry.toBush())));
+                    switch (berry.getType()) {
+                        case ORE_PLANT, DOUBLE_PLANT -> {
+                            Block plant;
+                            Block head;
+                            if (Tag.LEAVES.isTagged(block.getType())) {
+                                // Player broke the leaf block
+                                plant = block;
+                                head = block.getRelative(BlockFace.UP);
+                            } else {
+                                // Player broke the head block
+                                plant = block.getRelative(BlockFace.DOWN);
+                                head = block;
+                            }
+
+                            Location headLoc = head.getLocation();
+                        	Location plantLoc = plant.getLocation();
+                        	BlockVector3 headPos = BlockVector3.at(headLoc.getBlockX(), headLoc.getBlockY(), headLoc.getBlockZ());
+                        	BlockVector3 plantPos = BlockVector3.at(plantLoc.getBlockX(), plantLoc.getBlockY(), plantLoc.getBlockZ());
+                        	
+                            block.getWorld().playEffect(block.getLocation(), Effect.STEP_SOUND, Material.OAK_LEAVES);
+                            fastSession.setBlock(headPos, BlockTypes.AIR.getDefaultState());
+                            fastSession.setBlock(plantPos, BlockTypes.OAK_SAPLING.getDefaultState());
+                            controller.removeBlock(head.getLocation());
+                            controller.removeBlock(plant.getLocation());
+                            
+                            try {
+                            	slimefunItemOptional.ifPresent(slimefunItem -> controller.createBlock(plant.getLocation(), berry.getID()));
+                            } catch (IllegalStateException illegalStateException) {
+                                // ignore
+                            }
+                            return berry.getItem().clone();
+                        }
+                        default -> {
+                        	Location blockLoc = block.getLocation();
+                        	BlockVector3 blockPos = BlockVector3.at(blockLoc.getBlockX(), blockLoc.getBlockY(), blockLoc.getBlockZ());
+                            fastSession.setBlock(blockPos, BlockTypes.OAK_SAPLING.getDefaultState());
+                            controller.removeBlock(block.getLocation());
+                            try {
+                            	slimefunItemOptional.ifPresent(slimefunItem -> controller.createBlock(block.getLocation(), berry.getID()));
+                            } catch (IllegalStateException illegalStateException) {
+                                // ignore
+                            }
+                            
+                            
+                            return berry.getItem().clone();
+                        }
                     }
                 }
             }
+        	
+        	fastSession.flushQueue();
+    	} catch (Exception error) {
+        	error.printStackTrace();
         }
+        
 
         return null;
     }
@@ -207,6 +249,7 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
     }
 
     @Override
+    @Async
     public void onEnable() {
         PaperLib.suggestPaper(this);
 
@@ -256,7 +299,7 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
         if (!(new File("plugins/ExoticGarden")).exists()) (new File("plugins/ExoticGarden")).mkdirs();
 
         File storgeFile = new File(getDataFolder() + File.separator + "storage.yml");
-        createDefaultConfiguration(storgeFile, "storage.yml");
+        createDefaultConfiguration(storgeFile);
         initDataFromYAML(storgeFile);
 
         registerDrunkMessage();
@@ -594,6 +637,7 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
         }
     }
 
+    @Async
     private void registerDishes() {
         (new CustomFood(drinksItemGroup, new CustomItemStack(getSkull(Material.POTION, "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYWQ1ZThjNDg2YjUyNmRkYTgxMmI0MjQ0YzJmMjE5NDE4OWZiZWJjY2JlYmZiYTVhOTM3YTU2NTMzNWRhNDEyIn19fQ=="), "&3咖啡", new String[]{"", "&7提神醒脑的咖啡", "&7&o恢复&e2&7点饥饿", "&7&o恢复&e6&7点精神"}), "COFFEE", RecipeType.JUICER, new ItemStack[]{
 
@@ -1290,6 +1334,7 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
         instance = null;
     }
 
+    @Async
     private void registerTree(String id, String name, String texture, String color, Color pcolor, String juice_id, String juice, boolean pie, Material... soil) {
         id = id.toUpperCase(Locale.ROOT).replace(' ', '_');
         Tree tree = new Tree(id, texture, soil);
@@ -1316,6 +1361,7 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
         }
     }
 
+    @Async
     private void saveSchematic(@Nonnull String id) {
         try (InputStream input = getClass().getResourceAsStream("/schematics/" + id + ".schematic")) {
             try (FileOutputStream output = new FileOutputStream(new File(schematicsFolder, id + ".schematic"))) {
@@ -1331,6 +1377,7 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
         }
     }
 
+    @Async
     public void registerTechPlant(String rawName, String color, Material material, PlantType type, String data) {
         String name = getTranlateName(rawName);
         Berry berry = new Berry(name.toUpperCase().replace(" ", "_"), type, data);
@@ -1356,6 +1403,7 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
         return name;
     }
 
+    @Async
     private void initTransNames() {
         this.traslateNames.put("葡萄", "Grape");
         this.traslateNames.put("蓝莓", "Blueberry");
@@ -1402,7 +1450,7 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
         this.traslateNames.put("酒香果", "WineFruit");
     }
 
-    private void createDefaultConfiguration(File actual, String defaultName) {
+    private void createDefaultConfiguration(File actual) {
         if (actual.exists()) {
             return;
         } else {
@@ -1526,6 +1574,7 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
         registerBerry(id, name, color, potionColor, type, texture, true);
     }
 
+    @Async
     public void registerBerry(String id, String name, ChatColor color, Color potionColor, PlantType type, String texture, boolean juice) {
         String upperCase = id.toUpperCase(Locale.ROOT);
         Berry berry = new Berry(upperCase, type, texture);
@@ -1557,6 +1606,7 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
         new CustomFood(foodItemGroup, new SlimefunItemStack(upperCase + "_PIZZA_GRANDE", "783de92d490b914395744af1b6ea5c4ce8965dd40c3edecf10da578c423b66c6", color + name + "披萨", "", "&7&o恢复 &b&o" + "7.0" + " &7&o点饥饿值"), new ItemStack[]{ SlimefunItems.WHEAT_FLOUR,  SlimefunItems.SALT, getItem(upperCase), new ItemStack(Material.BEETROOT), SlimefunItems.CHEESE, new ItemStack(Material.POTATO), null, null, null}, 14).register(this);
     }
 
+    @Async
     public void registerPlant(String id, String name, ChatColor color, PlantType type, String texture) {
         String upperCase = id.toUpperCase(Locale.ROOT);
         String enumStyle = upperCase.replace(' ', '_');
@@ -1575,6 +1625,7 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
         new CustomFood(foodItemGroup, new SlimefunItemStack(enumStyle + "_PIZZA_GRANDE", "783de92d490b914395744af1b6ea5c4ce8965dd40c3edecf10da578c423b66c6", color + name + "披萨", "", "&7&o恢复 &b&o" + "7.0" + " &7&o点饥饿值"), new ItemStack[]{ SlimefunItems.WHEAT_FLOUR,  SlimefunItems.SALT, getItem(enumStyle), new ItemStack(Material.BEETROOT), SlimefunItems.CHEESE, new ItemStack(Material.POTATO), null, null, null}, 14).register(this);
     }
 
+    @Async
     private void registerMagicalPlant(String id, String name, ItemStack item, String texture, ItemStack[] recipe) {
         String upperCase = id.toUpperCase(Locale.ROOT);
         String enumStyle = upperCase.replace(' ', '_');
@@ -1594,6 +1645,7 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
         new CustomFood(foodItemGroup, new SlimefunItemStack(upperCase + "_SNACK", "f22743a662107366e15308b02f8035028d452fcac76968f6d7ee6d7c8f2573ec", name + "奇趣零食", "", "&7&o恢复 &b&o" + "5.0" + " &7&o点饥饿值"), new ItemStack[]{getItem(enumStyle + "_ESSENCE"), getItem("BLACK_PEPPER"),  SlimefunItems.SALT, new ItemStack(Material.POTATO), new ItemStack(Material.BROWN_MUSHROOM), null, null, null, null}, 10).register(this);
     }
 
+    @Async
     public void harvestFruit(Block fruit) {
         Location loc = fruit.getLocation();
         SlimefunItem check = StorageCacheUtils.getSfItem(loc);
@@ -1607,7 +1659,19 @@ public class ExoticGarden extends JavaPlugin implements SlimefunAddon {
             ItemStack fruits = check.getItem().clone();
             fruit.getWorld().playEffect(loc, Effect.STEP_SOUND, Material.OAK_LEAVES);
             fruit.getWorld().dropItemNaturally(loc, fruits);
-            fruit.setType(Material.AIR, false);
+            try (EditSession fastSession = WorldEdit.getInstance().newEditSessionBuilder()
+                    .allowedRegionsEverywhere() // 允许任何区域
+                    .limitUnlimited() // 解除限制
+                    .changeSetNull() // 不记录变化
+                    .fastMode(true) // 禁用快速模式（true = 无物理/粒子，false = 有物理/粒子）
+                    .build()) {
+            	BlockVector3 pos = BlockVector3.at(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
+            	fastSession.setBlock(pos, BlockTypes.AIR.getDefaultState());
+            	fastSession.flushQueue();
+            } catch (Exception e) {
+            	e.printStackTrace();
+                throw new RuntimeException("批量设置头颅失败", e);
+            }
         }
     }
 
