@@ -209,7 +209,6 @@ public class Schematic {
         return BlockTypes.get(minecraftId);
     }
     
-    @Async
     public static void pasteSchematic(World world, int x1, int y1, int z1, Tree tree, boolean doPhysics) {
     	Bukkit.getScheduler().runTaskAsynchronously(ExoticGarden.getInstance(), () -> {
     		Schematic schematic;
